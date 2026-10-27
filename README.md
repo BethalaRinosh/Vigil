@@ -5,7 +5,7 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Steps 1–8 of 11 are implemented. Vigil now compares Banker's safety-aware allocation with a naive availability-only policy using the same reproducible request workload.
+> **Current status:** Steps 1–9 of 11 are implemented. Vigil now compares Banker's safety-aware allocation with a naive availability-only policy using the same reproducible request workload.
 
 ## Progress checklist
 
