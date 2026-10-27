@@ -53,7 +53,7 @@ Inter is loaded from Google Fonts when a network connection is available; system
 
 ## Step 2 algorithm API and tests
 
-`banker.js` exports `calculateNeed(allocation, maximum)`, `safetyCheck(state)`, `requestResources(state, processIndex, request)`, `releaseResources(state, processIndex, release)`, `validateState(state)`, and `cloneState(state)`. The module runs in Node.js and does not access the DOM. Requests return `GRANTED`, `DENIED`, or `MUST WAIT`; tentative grants are applied to a cloned state and accepted only if the resulting state is safe. The caller's state is not mutated.
+`banker.js` exports `calculateNeed(allocation, maximum)`, `safetyCheck(state)`, `requestResources(state, processIndex, request)`, `releaseResources(state, processIndex, release)`, `validateState(state)`, and `cloneState(state)`. The module runs in Node.js and does not access the DOM. Requests return `GRANTED`, `DENIED`, or `MUST WAIT`; tentative grants are applied to a cloned state and accepted only if the resulting state is safe. The caller's state is not mutated. The safety check scans eligible processes circularly from the process after the last completion. This is a deterministic tie-breaking choice: any eligible process may be selected by the textbook safety algorithm, and this scan yields the requested demonstration sequence.
 
 Run the automated tests from the repository root with Node.js:
 
@@ -84,4 +84,5 @@ The tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `
 
 - Implemented Need calculation, the textbook safety algorithm, resource request handling, resource release, and input validation in `banker.js`.
 - Added Node.js tests for the required textbook sequence and request outcomes, an unsafe example, releases, and invalid inputs.
+- Executed the 9 test cases under Node.js in a local test harness; all passed after adjusting the deterministic safe-sequence scan to match the required textbook demonstration.
 - Algorithm logic remains pure and separate from the UI.
