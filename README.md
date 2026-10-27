@@ -5,12 +5,12 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Step 1 of 11 is complete. The algorithm layer and interactive matrix editor are intentionally planned for later steps.
+> **Current status:** Steps 1 and 2 of 11 are complete. The pure algorithm layer and Node test suite are available; the interactive matrix editor is planned for Step 3.
 
 ## Progress checklist
 
 - [x] **Step 1:** Repo setup and scaffold
-- [ ] **Step 2:** Core Banker's algorithms and Node tests
+- [x] **Step 2:** Core Banker's algorithms and Node tests
 - [ ] **Step 3:** Setup/input panel and validation
 - [ ] **Step 4:** Step-by-step safety check
 - [ ] **Step 5:** Resource request and release workflow
@@ -48,8 +48,20 @@ Inter is loaded from Google Fonts when a network connection is available; system
 - `index.html` — page structure, Vigil branding, navigation, and section panels.
 - `style.css` — theme variables, responsive layout, component styles, and reduced-motion handling.
 - `script.js` — navigation and theme interactions; state remains in memory.
-- `banker.js` — planned in Step 2 for pure Banker's Algorithm logic.
-- `tests.js` — planned in Step 2 for runnable Node.js tests.
+- `banker.js` — pure Need, safety, request, release, and state-validation functions.
+- `tests.js` — Node.js tests for the textbook scenario, request outcomes, unsafe state, release, and invalid inputs.
+
+## Step 2 algorithm API and tests
+
+`banker.js` exports `calculateNeed(allocation, maximum)`, `safetyCheck(state)`, `requestResources(state, processIndex, request)`, `releaseResources(state, processIndex, release)`, `validateState(state)`, and `cloneState(state)`. The module runs in Node.js and does not access the DOM. Requests return `GRANTED`, `DENIED`, or `MUST WAIT`; tentative grants are applied to a cloned state and accepted only if the resulting state is safe. The caller's state is not mutated.
+
+Run the automated tests from the repository root with Node.js:
+
+\`\`\`sh
+node tests.js
+\`\`\`
+
+The tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `(1,0,2)` request, denying P0's subsequent `(0,2,0)` request as unsafe, an unsafe initial state, Need calculations, release behavior, and invalid state inputs.
 
 ## Design and correctness commitments
 
@@ -67,3 +79,9 @@ Inter is loaded from Google Fonts when a network connection is available; system
 - Added all seven navigation tabs and responsive placeholder panels.
 - Added in-memory navigation, dark/light theme toggle, keyboard navigation, and reduced-motion support.
 - Added the README and progress checklist.
+
+### Step 2 — Core algorithms and tests
+
+- Implemented Need calculation, the textbook safety algorithm, resource request handling, resource release, and input validation in `banker.js`.
+- Added Node.js tests for the required textbook sequence and request outcomes, an unsafe example, releases, and invalid inputs.
+- Algorithm logic remains pure and separate from the UI.
