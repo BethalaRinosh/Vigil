@@ -5,6 +5,7 @@
 
 const assert = require("node:assert/strict");
 const banker = require("./banker.js");
+const risk = require("./risk.js");
 
 const textbook = {
   allocation: [
@@ -143,4 +144,50 @@ test("release beyond current Allocation is rejected", () => {
   assert.throws(() => banker.releaseResources(textbook, 0, [1, 0, 0]), /Cannot release more/i);
 });
 
-console.log("\nVigil algorithm tests passed.");
+
+test("heuristic risk assessment is bounded and reports distinct safe sequences", () => {
+  const result = risk.assess(textbook, banker);
+  assert.equal(result.safe, true);
+  assert.ok(result.systemScore >= 0 && result.systemScore <= 100);
+  assert.ok(result.utilizationPercent >= 0 && result.utilizationPercent <= 100);
+  assert.ok(result.distinctSafeSequenceCount >= 1);
+  assert.equal(result.processScores.length, textbook.allocation.length);
+  assert.ok(result.processScores.every((item) => item.score >= 0 && item.score <= 100));
+  assert.equal(result.systemLevel, "Low");
+});
+
+test("unsafe state is always Critical and has no complete safe sequence", () => {
+  const result = risk.assess(unsafe, banker);
+  assert.equal(result.safe, false);
+  assert.equal(result.systemLevel, "Critical");
+  assert.equal(result.distinctSafeSequenceCount, 0);
+  assert.ok(result.minimumSlack < 0);
+  assert.ok(result.processScores.some((item) => item.level === "Critical"));
+});
+
+test("safe-sequence enumeration obeys its cap", () => {
+  const result = risk.enumerateSafeSequences(textbook, banker, 1);
+  assert.equal(result.count, 1);
+  assert.equal(result.capped, true);
+});
+
+test("what-if comparison grants a safe request without mutating input", () => {
+  const before = banker.cloneState(textbook);
+  const result = risk.compareWhatIf(textbook, 1, [1, 0, 2], banker);
+  assert.equal(result.status, "GRANTED");
+  assert.equal(result.stateChanged, true);
+  assert.equal(result.before.safe, true);
+  assert.equal(result.after.safe, true);
+  assert.deepEqual(textbook, before);
+});
+
+test("what-if comparison keeps the same state for denied requests", () => {
+  const before = banker.cloneState(textbook);
+  const result = risk.compareWhatIf(textbook, 0, [0, 2, 0], banker);
+  assert.equal(result.status, "DENIED");
+  assert.equal(result.stateChanged, false);
+  assert.equal(result.before.systemScore, result.after.systemScore);
+  assert.deepEqual(textbook, before);
+});
+
+console.log("\nVigil algorithm and heuristic risk tests passed.");
