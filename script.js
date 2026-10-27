@@ -79,6 +79,7 @@
   let requestState = null;
   let requestHistory = [];
   let requestScenarioSnapshot = "";
+  let selectedRiskProcess = 0;
 
   function cloneScenario(source) {
     return {
@@ -326,6 +327,7 @@
     renderAvailable();
     refreshDerived();
     $("setup-state-label").textContent = processCount() + " process" + (processCount() === 1 ? "" : "es") + " · " + resourceCount() + " resource type" + (resourceCount() === 1 ? "" : "s");
+    renderRiskWorkspace();
   }
 
   document.querySelectorAll("[data-count]").forEach((button) => button.addEventListener("click", () => {
@@ -348,6 +350,189 @@
   });
 
 
+
+
+  // Step 6: transparent heuristic risk scoring. Not ML and never a safety proof.
+  function riskLevelClass(level) { return String(level || "pending").toLowerCase(); }
+  function renderRiskProcessDetail(item) {
+    const host = $("risk-process-detail");
+    if (!host) return;
+    host.replaceChildren();
+    if (!item) {
+      host.appendChild(makeCell("p", "", "No process risk data is available for the current setup."));
+      return;
+    }
+    const heading = makeCell("div", "risk-detail-heading");
+    heading.append(makeCell("strong", "", scenario.processNames[item.processIndex]), makeCell("span", "risk-level-badge risk-" + riskLevelClass(item.level), item.level + " · " + item.score + "/100"));
+    host.appendChild(heading);
+    [
+      ["Need pressure", item.needPressure, "Need relative to current Available."],
+      ["Competition", item.competition, "Other processes that hold or claim resources this process needs."],
+      ["Sequence fragility", item.sequenceFragility, item.sequencePosition === null ? "Process is blocked in the current partial proof." : "Position " + item.sequencePosition + " in the deterministic safe sequence."]
+    ].forEach(([label, value, description]) => {
+      const row = makeCell("div", "risk-detail-factor");
+      const top = makeCell("div", "risk-factor-top");
+      top.append(makeCell("strong", "", label), makeCell("span", "", value + "/100"));
+      const track = makeCell("div", "risk-factor-track");
+      const fill = makeCell("span", "risk-factor-fill risk-fill-" + (value >= 75 ? "high" : value >= 50 ? "medium" : "low"));
+      fill.style.width = value + "%";
+      track.appendChild(fill);
+      row.append(top, track, makeCell("p", "", description));
+      host.appendChild(row);
+    });
+  }
+  function renderRiskWorkspace() {
+    if (!$("risk-system-score") || !window.VigilRisk || !window.VigilBanker) return;
+    $("risk-scenario-name").textContent = "Current setup scenario";
+    $("risk-scenario-meta").textContent = processCount() + " processes · " + resourceCount() + " resource types";
+    const errors = collectErrors();
+    let assessment;
+    try {
+      if (errors.length) throw new TypeError(errors[0]);
+      assessment = window.VigilRisk.assess(scenario, window.VigilBanker, 1000);
+    } catch (error) {
+      ["risk-system-score","risk-utilization","risk-sequence-count","risk-min-slack"].forEach((id) => { $(id).textContent = "—"; });
+      $("risk-system-level").textContent = "Invalid setup";
+      $("risk-safety-status").textContent = "Analysis paused: " + (error.message || "invalid setup");
+      $("risk-recommendation").textContent = "Correct the System setup inputs before calculating risk.";
+      $("risk-process-list").replaceChildren(makeCell("p", "request-state-empty", "No scores until the setup is valid."));
+      $("risk-factor-bars").replaceChildren();
+      renderRiskProcessDetail(null);
+      renderRiskWhatIfInputs();
+      return;
+    }
+    $("risk-system-score").textContent = String(assessment.systemScore);
+    $("risk-system-level").textContent = assessment.systemLevel;
+    $("risk-system-level").className = "risk-level-badge risk-" + riskLevelClass(assessment.systemLevel);
+    $("risk-utilization").textContent = assessment.utilizationPercent + "%";
+    $("risk-sequence-count").textContent = assessment.sequenceCountCapped ? "≥" + assessment.sequenceCap : String(assessment.distinctSafeSequenceCount);
+    $("risk-sequence-note").textContent = assessment.sequenceCountCapped ? "Enumeration cap reached; count is at least " + assessment.sequenceCap : "Distinct valid completion orders";
+    $("risk-min-slack").textContent = (assessment.minimumSlack > 0 ? "+" : "") + assessment.minimumSlack;
+    $("risk-safety-status").className = "risk-safety-status " + (assessment.safe ? "risk-safe" : "risk-unsafe");
+    $("risk-safety-status").textContent = assessment.safe ? "FORMALLY SAFE · " + assessment.safeSequence.map((p) => scenario.processNames[p]).join(" → ") : "UNSAFE · blocked: " + assessment.stuckProcesses.map((p) => scenario.processNames[p]).join(", ");
+    $("risk-recommendation").textContent = assessment.recommendation;
+    const sequenceScarcity = assessment.distinctSafeSequenceCount === 0 ? 100 : Math.min(100, 100 / Math.sqrt(assessment.distinctSafeSequenceCount));
+    const slackPressure = assessment.minimumSlack < 0 ? 100 : 100 / (1 + assessment.minimumSlack);
+    const factors = [
+      ["Utilization", 35 * assessment.utilizationPercent / 100, "35% weight"],
+      ["Sequence scarcity", 35 * sequenceScarcity / 100, "35% weight"],
+      ["Slack pressure", 30 * slackPressure / 100, "30% weight"]
+    ];
+    const factorHost = $("risk-factor-bars");
+    factorHost.replaceChildren();
+    factors.forEach(([name, contribution, weight]) => {
+      const row = makeCell("div", "risk-factor-row");
+      const top = makeCell("div", "risk-factor-top");
+      top.append(makeCell("strong", "", name), makeCell("span", "", contribution.toFixed(1) + " pts · " + weight));
+      const track = makeCell("div", "risk-factor-track");
+      const fill = makeCell("span", "risk-factor-fill risk-fill-" + (contribution >= 25 ? "high" : contribution >= 12 ? "medium" : "low"));
+      fill.style.width = (contribution / 35 * 100) + "%";
+      track.appendChild(fill);
+      row.append(top, track);
+      factorHost.appendChild(row);
+    });
+    const list = $("risk-process-list");
+    list.replaceChildren();
+    assessment.processScores.forEach((item) => {
+      const button = makeCell("button", "risk-process-row" + (item.processIndex === selectedRiskProcess ? " is-selected" : ""));
+      button.type = "button";
+      button.setAttribute("aria-pressed", String(item.processIndex === selectedRiskProcess));
+      const title = makeCell("span", "risk-process-name", scenario.processNames[item.processIndex]);
+      const track = makeCell("span", "risk-process-mini-track");
+      const fill = makeCell("span", "risk-process-mini-fill risk-fill-" + (item.score >= 75 ? "high" : item.score >= 50 ? "medium" : "low"));
+      fill.style.width = item.score + "%";
+      track.appendChild(fill);
+      const score = makeCell("strong", "risk-process-score", String(item.score));
+      const badge = makeCell("span", "risk-level-badge risk-" + riskLevelClass(item.level), item.level);
+      button.append(title, track, score, badge);
+      button.addEventListener("click", () => {
+        selectedRiskProcess = item.processIndex;
+        list.querySelectorAll(".risk-process-row").forEach((row) => {
+          const active = row === button;
+          row.classList.toggle("is-selected", active);
+          row.setAttribute("aria-pressed", String(active));
+        });
+        renderRiskProcessDetail(item);
+      });
+      list.appendChild(button);
+    });
+    if (selectedRiskProcess >= assessment.processScores.length) selectedRiskProcess = 0;
+    renderRiskProcessDetail(assessment.processScores[selectedRiskProcess]);
+    renderRiskWhatIfInputs();
+  }
+  function renderRiskWhatIfInputs() {
+    if (!$("risk-process") || !$("risk-request-inputs")) return;
+    const select = $("risk-process");
+    const previous = select.value;
+    select.replaceChildren();
+    scenario.processNames.forEach((name, p) => {
+      const option = document.createElement("option");
+      option.value = String(p);
+      option.textContent = name;
+      select.appendChild(option);
+    });
+    select.value = scenario.processNames[Number(previous)] !== undefined ? previous : "0";
+    const host = $("risk-request-inputs");
+    const existing = Array.from(host.querySelectorAll("input")).map((input) => input.value);
+    host.replaceChildren();
+    scenario.resourceNames.forEach((name, r) => {
+      const label = makeCell("label", "request-resource-field");
+      const title = makeCell("span", "request-resource-name", name);
+      const input = document.createElement("input");
+      input.type = "number";
+      input.min = "0";
+      input.step = "1";
+      input.inputMode = "numeric";
+      input.value = existing[r] ?? "0";
+      input.id = "risk-request-value-" + r;
+      input.className = "request-number-input";
+      input.setAttribute("aria-label", "Hypothetical request for " + name);
+      label.append(title, input);
+      host.appendChild(label);
+    });
+  }
+  function evaluateRiskWhatIf() {
+    try {
+      const errors = collectErrors();
+      if (errors.length) throw new TypeError(errors[0]);
+      const p = Number($("risk-process").value);
+      const request = scenario.resourceNames.map((name, r) => {
+        const raw = $("risk-request-value-" + r)?.value ?? "";
+        const value = raw.trim() === "" ? NaN : Number(raw);
+        if (!Number.isInteger(value) || value < 0) throw new TypeError("Enter a non-negative whole number for " + name + ".");
+        return value;
+      });
+      const result = window.VigilRisk.compareWhatIf(scenario, p, request, window.VigilBanker, 1000);
+      const host = $("risk-whatif-result");
+      host.replaceChildren();
+      const statusClass = result.status === "GRANTED" ? "granted" : result.status === "MUST WAIT" ? "wait" : "denied";
+      const header = makeCell("div", "whatif-outcome-head");
+      header.append(makeCell("span", "history-status status-" + statusClass, result.status), makeCell("strong", "", scenario.processNames[p] + " · (" + request.join(", ") + ")"));
+      host.appendChild(header);
+      const comparison = makeCell("div", "whatif-comparison");
+      [
+        ["BEFORE", result.before],
+        ["AFTER", result.after]
+      ].forEach(([label, data]) => {
+        const card = makeCell("div", "whatif-score-card");
+        card.append(makeCell("span", "risk-metric-label", label), makeCell("strong", "", data.systemScore + "/100"), makeCell("span", "risk-level-badge risk-" + riskLevelClass(data.systemLevel), data.systemLevel));
+        card.appendChild(makeCell("small", "", data.utilizationPercent + "% utilization · " + (data.sequenceCountCapped ? "≥" + data.sequenceCap : data.distinctSafeSequenceCount) + " safe sequences"));
+        comparison.appendChild(card);
+      });
+      host.append(header, comparison);
+      const delta = result.after.systemScore - result.before.systemScore;
+      const deltaText = delta > 0 ? "+" + delta : String(delta);
+      host.appendChild(makeCell("p", "whatif-delta", result.stateChanged ? "Heuristic risk score change: " + deltaText + " points. This is a hypothetical comparison only." : "Risk score change: 0 points. No resources were committed because the request was not granted."));
+      host.appendChild(makeCell("p", "whatif-reason", result.reason));
+      host.appendChild(makeCell("p", "whatif-recommendation", result.recommendation));
+      host.appendChild(makeCell("p", "whatif-note", "After-state: " + (result.after.safe ? "safe" : "unsafe") + ". The formal safety check takes precedence over heuristic scores."));
+    } catch (error) {
+      const host = $("risk-whatif-result");
+      host.replaceChildren(makeCell("p", "whatif-error", error.message || "Unable to evaluate this hypothetical request."));
+    }
+  }
+  $("risk-refresh").addEventListener("click", renderRiskWorkspace);
+  $("risk-evaluate-whatif").addEventListener("click", evaluateRiskWhatIf);
 
   // Step 5: isolated runtime state for request/release experiments.
   function requestSnapshot() {
