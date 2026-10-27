@@ -5,13 +5,13 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Steps 1 and 2 of 11 are complete. The pure algorithm layer and Node test suite are available; the interactive matrix editor is planned for Step 3.
+> **Current status:** Steps 1–3 of 11 are complete. The pure algorithm layer, Node tests, and interactive scenario editor are available.
 
 ## Progress checklist
 
 - [x] **Step 1:** Repo setup and scaffold
 - [x] **Step 2:** Core Banker's algorithms and Node tests
-- [ ] **Step 3:** Setup/input panel and validation
+- [x] **Step 3:** Setup/input panel and validation
 - [ ] **Step 4:** Step-by-step safety check
 - [ ] **Step 5:** Resource request and release workflow
 - [ ] **Step 6:** Heuristic risk engine and formulas
@@ -45,11 +45,17 @@ Inter is loaded from Google Fonts when a network connection is available; system
 
 ## Project files
 
-- `index.html` — page structure, Vigil branding, navigation, and section panels.
-- `style.css` — theme variables, responsive layout, component styles, and reduced-motion handling.
-- `script.js` — navigation and theme interactions; state remains in memory.
+- `index.html` — page structure, Vigil branding, navigation, and scenario editor markup.
+- `style.css` — theme variables, responsive layout, component styles, editable matrix styles, and reduced-motion handling.
+- `script.js` — navigation, theme interactions, in-memory scenario editor, matrix rendering, validation, and scenario presets.
 - `banker.js` — pure Need, safety, request, release, and state-validation functions.
 - `tests.js` — Node.js tests for the textbook scenario, request outcomes, unsafe state, release, and invalid inputs.
+
+## Step 3 scenario editor
+
+The **System setup** tab supports 1–10 processes and 1–6 resource types. Process and resource names are editable, as are the Maximum and Allocation matrices and Available vector. Need is computed live as Maximum minus Allocation and is not directly editable. Inline validation checks integer/non-negative values, matrix bounds, and Allocation ≤ Maximum. The editor includes Textbook example, Unsafe example, Random generate, Reset, and Validate scenario actions. Changing dimensions preserves values in the overlapping part of the matrices and initializes new cells to zero. Scenario data stays in memory and is not persisted.
+
+The Textbook example loads the classic five-process, three-resource example. The Unsafe example loads a compact three-process, two-resource state that has no safe sequence.
 
 ## Step 2 algorithm API and tests
 
@@ -86,3 +92,11 @@ The tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `
 - Added Node.js tests for the required textbook sequence and request outcomes, an unsafe example, releases, and invalid inputs.
 - Executed the 9 test cases under Node.js in a local test harness; all passed after adjusting the deterministic safe-sequence scan to match the required textbook demonstration.
 - Algorithm logic remains pure and separate from the UI.
+
+### Step 3 — Setup/input panel
+
+- Added editable process/resource dimensions, process names, resource names, Maximum and Allocation matrices, and Available vector.
+- Added live Need calculation and inline input validation.
+- Added Textbook example, Unsafe example, Random generate, Reset, and Validate scenario actions.
+- Added responsive matrix scrolling and input-specific accessibility labels.
+- Kept all scenario state in memory without localStorage.
