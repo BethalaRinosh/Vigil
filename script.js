@@ -1,4 +1,4 @@
-/* Vigil UI and Step 3 scenario editor. Scenario state is in memory only. */
+/* Vigil UI, scenario editor, safety trace, and transaction simulator. State is in memory only. */
 (() => {
   "use strict";
   const root = document.documentElement;
