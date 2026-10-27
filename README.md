@@ -5,7 +5,7 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Steps 1–9 of 11 are implemented. Vigil includes the OS learning guide and validated, versioned JSON scenario import/export.
+> **Current status:** Steps 1–10 of 11 are implemented. Vigil includes accessible feedback, keyboard-focused UI polish, safe-sequence chips, and reduced-motion-aware interactions.
 
 ## Progress checklist
 
@@ -18,7 +18,7 @@ Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser
 - [x] **Step 7:** Risk visualizations
 - [x] **Step 8:** Banker's vs. naive policy comparison
 - [x] **Step 9:** Learning guide and JSON scenario import/export
-- [ ] **Step 10:** UI polish, animation, accessibility, and responsiveness review
+- [x] **Step 10:** UI polish, animation, accessibility, and responsiveness review
 - [ ] **Step 11:** Final documentation, viva cheatsheet, and demo script
 
 ## What exists now
@@ -157,6 +157,10 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Show risk rules and weights transparently; heuristic scores are not formal safety proofs.
 - Vigil is an educational client-side simulation, not an operating-system resource manager.
 - Do not persist scenario state in localStorage.
+
+## Context review — Step 10
+
+**Context review done.** Added an accessible live toast region for scenario import/export outcomes, a chip-based safe completion sequence in the final safety verdict, and a subtle step-count pulse. Focus-visible outlines now cover common interactive controls, the JSON file picker is keyboard reachable despite its visually hidden input, and narrow-screen toast/sequence layouts are bounded. Existing panel transitions and reduced-motion support remain in place; new animations are explicitly disabled for reduced-motion users. Static repository checks and automated tests are being repeated. Browser-only download/file-picker and visual viewport checks still require a real browser.
 
 ## Context review — Step 9
 
