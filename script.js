@@ -194,18 +194,6 @@
     host.appendChild(wrap);
   }
 
-  function updateResourceLabels() {
-    document.querySelectorAll("#available-vector .available-item").forEach((item, r) => {
-      const name = item.querySelector(".available-name");
-      if (name) name.textContent = scenario.resourceNames[r];
-    });
-  }
-  function updateProcessLabels() {
-    document.querySelectorAll("#maximum-matrix tbody tr, #allocation-matrix tbody tr, #need-matrix tbody tr").forEach((row, p) => {
-      const input = row.querySelector(".row-heading input");
-      if (input) input.setAttribute("aria-label", "Name for process " + (p + 1));
-    });
-  }
   function refreshDerived() {
     const host = $("need-matrix");
     host.replaceChildren();
@@ -275,7 +263,6 @@
   }
 
   function resizeScenario(kind, nextCount) {
-    const key = kind === "process" ? "allocation" : "available";
     const oldN = processCount(); const oldM = resourceCount();
     const n = kind === "process" ? Math.max(1, Math.min(10, nextCount)) : oldN;
     const m = kind === "resource" ? Math.max(1, Math.min(6, nextCount)) : oldM;
