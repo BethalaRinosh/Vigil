@@ -187,6 +187,7 @@
         scenario.available[r] = parsed;
         field.classList.toggle("input-invalid", !Number.isInteger(parsed) || parsed < 0);
         validateAndPaint();
+        resetSafety();
       });
       item.append(name, input);
       wrap.appendChild(item);
@@ -222,6 +223,7 @@
     }
     table.appendChild(tbody); host.appendChild(table);
     validateAndPaint();
+    if (typeof resetSafety === "function") resetSafety();
   }
 
   function collectErrors() {
@@ -283,6 +285,7 @@
     $("process-count").value = String(n);
     $("resource-count").value = String(m);
     renderAll();
+    resetSafety();
   }
 
   function loadScenario(next) {
@@ -290,6 +293,7 @@
     $("process-count").value = String(processCount());
     $("resource-count").value = String(resourceCount());
     renderAll();
+    resetSafety();
   }
   function randomScenario() {
     const n = Number($("process-count").value);
@@ -338,7 +342,224 @@
     }
   });
 
+
+  // Step 4: interactive, deterministic walkthrough of the Banker's safety proof.
+  let safetyResult = null;
+  let safetyCursor = -1;
+  let safetySnapshot = "";
+  let safetyTimer = null;
+
+  function stateSnapshot() {
+    return JSON.stringify({ allocation: scenario.allocation, maximum: scenario.maximum, available: scenario.available, processNames: scenario.processNames, resourceNames: scenario.resourceNames });
+  }
+  function stopSafetyAuto() {
+    if (safetyTimer !== null) {
+      clearInterval(safetyTimer);
+      safetyTimer = null;
+    }
+    const auto = $("safety-auto");
+    if (auto) auto.textContent = "▶ Auto play";
+  }
+  function makeVectorChip(label, value, className = "") {
+    const chip = document.createElement("span");
+    chip.className = "vector-chip" + (className ? " " + className : "");
+    const name = document.createElement("span");
+    name.textContent = label;
+    const number = document.createElement("strong");
+    number.textContent = String(value);
+    chip.append(name, number);
+    return chip;
+  }
+  function paintSafetyNeed() {
+    const host = $("safety-need-matrix");
+    if (!host) return;
+    host.replaceChildren();
+    const table = document.createElement("table");
+    table.className = "data-matrix";
+    const head = document.createElement("thead");
+    const hr = document.createElement("tr");
+    hr.appendChild(makeCell("th", "process-heading", "PROCESS"));
+    scenario.resourceNames.forEach((name) => hr.appendChild(makeCell("th", "", name || "Resource")));
+    head.appendChild(hr);
+    table.appendChild(head);
+    const body = document.createElement("tbody");
+    const need = safetyResult ? safetyResult.need : scenario.maximum.map((row,p) => row.map((max,r) => Number.isInteger(max) && Number.isInteger(scenario.allocation[p]?.[r]) && max >= scenario.allocation[p][r] ? max-scenario.allocation[p][r] : "!"));
+    for (let p = 0; p < processCount(); p += 1) {
+      const tr = document.createElement("tr");
+      const done = safetyCursor >= 0 && safetyResult?.trace[safetyCursor]?.finish[p];
+      tr.classList.toggle("process-finished", Boolean(done));
+      tr.appendChild(makeCell("th", "row-heading", scenario.processNames[p]));
+      for (let r = 0; r < resourceCount(); r += 1) {
+        const val = need[p]?.[r] ?? "!";
+        tr.appendChild(makeCell("td", "derived-value", String(val)));
+      }
+      body.appendChild(tr);
+    }
+    table.appendChild(body);
+    host.appendChild(table);
+  }
+  function paintSafetyState() {
+    const workHost = $("safety-work-vector");
+    const finishHost = $("safety-finish-vector");
+    if (!workHost || !finishHost) return;
+    workHost.replaceChildren();
+    finishHost.replaceChildren();
+    const work = safetyCursor >= 0 && safetyResult ? safetyResult.trace[safetyCursor].work : scenario.available;
+    const finish = safetyCursor >= 0 && safetyResult ? safetyResult.trace[safetyCursor].finish : Array(processCount()).fill(false);
+    scenario.resourceNames.forEach((name, r) => workHost.appendChild(makeVectorChip(name, work[r] ?? "!", "work-chip")));
+    scenario.processNames.forEach((name, p) => {
+      const item = document.createElement("div");
+      item.className = "finish-chip" + (finish[p] ? " is-finished" : "");
+      item.appendChild(makeCell("span", "finish-process", name));
+      item.appendChild(makeCell("strong", "", finish[p] ? "TRUE" : "FALSE"));
+      finishHost.appendChild(item);
+    });
+    paintSafetyNeed();
+  }
+  function paintSafetyVerdict(kind, title, message, kicker) {
+    const host = $("safety-verdict");
+    host.className = "safety-verdict " + kind;
+    host.querySelector(".verdict-icon").textContent = kind === "is-safe" ? "✓" : kind === "is-unsafe" ? "!" : "◷";
+    host.querySelector(".verdict-kicker").textContent = kicker;
+    host.querySelector("h2").textContent = title;
+    host.querySelector("p").textContent = message;
+  }
+  function paintSafetyTrace() {
+    const list = $("safety-trace-list");
+    if (!list) return;
+    list.replaceChildren();
+    const progress = $("safety-trace-progress");
+    const fill = $("safety-progress-fill");
+    const stepCount = $("safety-step-count");
+    const nextButton = $("safety-next");
+    const explanation = $("safety-explanation");
+    const scenarioName = $("safety-scenario-name");
+    const meta = $("safety-scenario-meta");
+    if (scenarioName) scenarioName.textContent = "Current scenario";
+    if (meta) meta.textContent = processCount() + " processes · " + resourceCount() + " resource types";
+    if (!safetyResult) {
+      list.appendChild(makeEmptyTrace("Fix the input issues in System setup before running a safety check."));
+      paintSafetyVerdict("is-pending", "Scenario needs valid inputs", "Return to System setup and correct the highlighted values before running the algorithm.", "INPUT VALIDATION");
+      progress.textContent = "INPUT ERROR";
+      fill.style.width = "0%";
+      stepCount.textContent = "Step 0";
+      nextButton.disabled = true;
+      explanation.querySelector("strong").textContent = "Cannot start yet";
+      explanation.querySelector("p").textContent = currentErrors[0] || "Correct the invalid values in the setup panel.";
+      paintSafetyState();
+      return;
+    }
+    nextButton.disabled = false;
+    const trace = safetyResult.trace;
+    const displayedIndex = Math.min(safetyCursor, trace.length - 1);
+    const count = Math.max(0, safetyCursor + 1);
+    stepCount.textContent = safetyCursor < 0 ? "Step 0" : "Step " + (safetyCursor + 1);
+    progress.textContent = safetyCursor < 0 ? "READY" : "TRACE " + Math.min(safetyCursor + 1, trace.length) + " / " + trace.length;
+    fill.style.width = Math.round((Math.max(0, safetyCursor + 1) / (trace.length + (safetyResult.safe ? 0 : 1))) * 100) + "%";
+    if (safetyCursor < 0) {
+      list.appendChild(makeEmptyTrace("Press Next step to reveal the initial Work and Finish values."));
+      paintSafetyVerdict("is-pending", "Check the current system state", "The safety algorithm will search for an unfinished process whose Need is less than or equal to Work.", "READY TO SIMULATE");
+      explanation.querySelector("strong").textContent = "Step 0 · Initialize";
+      explanation.querySelector("p").textContent = "Work starts as the Available vector. Finish starts false for every process because no process has completed in the simulation yet.";
+    } else {
+      for (let i = 0; i <= displayedIndex; i += 1) {
+        const item = document.createElement("div");
+        item.className = "trace-item" + (i === displayedIndex ? " is-current" : "");
+        const marker = makeCell("span", "trace-number", String(i).padStart(2,"0"));
+        const copy = document.createElement("div");
+        copy.className = "trace-copy";
+        const title = document.createElement("strong");
+        if (i === 0) title.textContent = "Initialize Work and Finish";
+        else title.textContent = scenario.processNames[trace[i].completedProcess] + " can finish";
+        const desc = document.createElement("p");
+        if (i === 0) desc.textContent = "Work = Available. Every Finish flag begins false.";
+        else {
+          const p = trace[i].completedProcess;
+          desc.textContent = "Need (" + safetyResult.need[p].join(", ") + ") ≤ Work before completion. Release Allocation (" + scenario.allocation[p].join(", ") + ") into Work.";
+        }
+        copy.append(title, desc);
+        item.append(marker, copy);
+        list.appendChild(item);
+      }
+      const current = trace[displayedIndex];
+      if (current.completedProcess === null) {
+        paintSafetyVerdict("is-pending", "Initial state loaded", "Work equals Available (" + current.work.join(", ") + "). Now find a process whose entire Need vector fits within Work.", "INITIAL STATE");
+        explanation.querySelector("strong").textContent = "Why this matters";
+        explanation.querySelector("p").textContent = "A process is eligible only when every resource requirement can be satisfied by the current Work vector. If it finishes, its allocated resources are returned to Work.";
+      } else {
+        const p = current.completedProcess;
+        paintSafetyVerdict("is-progress", scenario.processNames[p] + " can complete", "Its Need fits within Work. Its current allocation is now returned to Work, allowing the algorithm to check the next process.", "PROCESS COMPLETED");
+        explanation.querySelector("strong").textContent = "Why " + scenario.processNames[p] + " was eligible";
+        explanation.querySelector("p").textContent = "Need (" + safetyResult.need[p].join(", ") + ") is no greater than Work before completion. Work increases by Allocation (" + scenario.allocation[p].join(", ") + "), and Finish for this process becomes true.";
+      }
+    }
+    if (safetyCursor >= trace.length - 1 && safetyResult.safe) {
+      paintSafetyVerdict("is-safe", "SAFE STATE", "All processes can finish in this order: " + safetyResult.safeSequence.map((p) => scenario.processNames[p]).join(" → ") + ". The final Work vector is (" + safetyResult.finalWork.join(", ") + ").", "SAFETY PROVEN");
+      progress.textContent = "SAFE · COMPLETE";
+      fill.style.width = "100%";
+      nextButton.disabled = true;
+      explanation.querySelector("strong").textContent = "Proof complete";
+      explanation.querySelector("p").textContent = "Every Finish flag is true. This sequence proves the state is safe under the declared maximum claims.";
+    } else if (safetyCursor >= trace.length) {
+      const stuckNames = safetyResult.stuckProcesses.map((p) => scenario.processNames[p]);
+      paintSafetyVerdict("is-unsafe", "UNSAFE STATE", "No unfinished process has Need ≤ Work. The algorithm cannot prove completion for: " + stuckNames.join(", ") + ". Partial sequence: " + safetyResult.partialSequence.map((p) => scenario.processNames[p]).join(" → ") + ".", "SAFETY NOT PROVEN");
+      progress.textContent = "UNSAFE · COMPLETE";
+      fill.style.width = "100%";
+      nextButton.disabled = true;
+      explanation.querySelector("strong").textContent = "Why the trace stopped";
+      explanation.querySelector("p").textContent = "None of the unfinished processes can meet its remaining Need with the final Work vector (" + safetyResult.finalWork.join(", ") + "). This is an unsafe state, though it does not necessarily mean the system is already deadlocked.";
+    }
+    paintSafetyState();
+  }
+  function makeEmptyTrace(message) {
+    const empty = document.createElement("div");
+    empty.className = "trace-empty";
+    empty.appendChild(makeCell("span", "", "01"));
+    empty.appendChild(makeCell("p", "", message));
+    return empty;
+  }
+  function resetSafety() {
+    stopSafetyAuto();
+    safetyCursor = -1;
+    safetySnapshot = stateSnapshot();
+    currentErrors = collectErrors();
+    try {
+      safetyResult = currentErrors.length ? null : window.VigilBanker.safetyCheck({
+        allocation: scenario.allocation,
+        maximum: scenario.maximum,
+        available: scenario.available
+      });
+    } catch (error) {
+      safetyResult = null;
+      currentErrors = [error.message || "Could not validate the current state."];
+    }
+    paintSafetyTrace();
+  }
+  function safetyNextStep() {
+    if (safetySnapshot !== stateSnapshot()) resetSafety();
+    if (!safetyResult || safetyCursor >= safetyResult.trace.length - 1 && safetyResult.safe || safetyCursor >= safetyResult.trace.length) {
+      stopSafetyAuto();
+      return;
+    }
+    safetyCursor += 1;
+    paintSafetyTrace();
+    if (safetyResult.safe && safetyCursor >= safetyResult.trace.length - 1) stopSafetyAuto();
+    if (!safetyResult.safe && safetyCursor >= safetyResult.trace.length) stopSafetyAuto();
+  }
+  $("safety-next").addEventListener("click", safetyNextStep);
+  $("safety-reset").addEventListener("click", resetSafety);
+  $("safety-auto").addEventListener("click", () => {
+    if (safetyTimer !== null) {
+      stopSafetyAuto();
+      return;
+    }
+    if (!safetyResult || safetyCursor >= safetyResult.trace.length - 1 && safetyResult.safe || safetyCursor >= safetyResult.trace.length) resetSafety();
+    $("safety-auto").textContent = "Ⅱ Pause";
+    safetyTimer = setInterval(safetyNextStep, 1100);
+  });
+
   activateTab("overview");
   setTheme(root.dataset.theme === "light" ? "light" : "dark");
   renderAll();
+  resetSafety();
 })();
