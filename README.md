@@ -54,6 +54,18 @@ Inter is loaded from Google Fonts when a network connection is available; system
 - `scenario-io.js` — versioned scenario JSON serialization and strict import validation.
 - `tests.js` — Node.js tests for algorithms, risk analysis, deterministic policy workloads, and scenario JSON round-trip/validation.
 
+## Step 9 learning guide and scenario JSON
+
+The Learn & export workspace covers Allocation, Maximum, Need, Available, Work, safe versus unsafe states, Banker's request handling, the Coffman conditions, heuristic risk scores, and model assumptions.
+
+Scenario files use a versioned JSON envelope with `format: "vigil-scenario"`, `version: 1`, an export timestamp, and a `scenario` object containing Allocation, Maximum, Available, process names, and resource names.
+
+Use **Show current JSON** to inspect or copy the current setup, **Download current scenario** to save a JSON file, paste a document into the editor and choose **Validate & load scenario**, or choose a JSON file to import it.
+
+Imports validate the format/version, process/resource limits, names, matrix dimensions, non-negative integer values, and `Allocation ≤ Maximum` before changing the setup. Files larger than 1 MB are rejected. A failed import leaves the current setup unchanged. A successful import resets the safety trace and request session and clears policy comparison results.
+
+Vigil does not save scenarios to browser storage automatically; exported files remain under the user's control.
+
 ## Step 8 policy comparison
 
 The **Policy comparison** workspace runs a seeded workload through two policies from the same starting scenario:
