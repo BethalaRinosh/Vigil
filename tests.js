@@ -188,7 +188,7 @@ test("what-if comparison keeps the same state for denied requests", () => {
   assert.equal(result.status, "DENIED");
   assert.equal(result.stateChanged, false);
   assert.equal(result.before.systemScore, result.after.systemScore);
-  assert.deepEqual(textbook, before);
+  assert.deepEqual(afterFirst, before);
 });
 
 console.log("\nVigil algorithm and heuristic risk tests passed.");
