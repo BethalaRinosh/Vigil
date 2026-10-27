@@ -173,6 +173,14 @@ test("safe-sequence enumeration obeys its cap", () => {
   assert.equal(result.capped, true);
 });
 
+test("safe-sequence enumeration does not claim truncation when count exactly meets cap", () => {
+  const singleSequence = { allocation: [[0]], maximum: [[0]], available: [0] };
+  const result = risk.enumerateSafeSequences(singleSequence, banker, 1);
+  assert.deepEqual(result.sequences, [[0]]);
+  assert.equal(result.count, 1);
+  assert.equal(result.capped, false);
+});
+
 test("what-if comparison grants a safe request without mutating input", () => {
   const before = banker.cloneState(textbook);
   const result = risk.compareWhatIf(textbook, 1, [1, 0, 2], banker);
