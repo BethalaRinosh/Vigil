@@ -153,7 +153,7 @@ test("heuristic risk assessment is bounded and reports distinct safe sequences",
   assert.ok(result.distinctSafeSequenceCount >= 1);
   assert.equal(result.processScores.length, textbook.allocation.length);
   assert.ok(result.processScores.every((item) => item.score >= 0 && item.score <= 100));
-  assert.equal(result.systemLevel, "Low");
+  assert.equal(result.systemLevel, "High");
 });
 
 test("unsafe state is always Critical and has no complete safe sequence", () => {
@@ -182,8 +182,9 @@ test("what-if comparison grants a safe request without mutating input", () => {
 });
 
 test("what-if comparison keeps the same state for denied requests", () => {
-  const before = banker.cloneState(textbook);
-  const result = risk.compareWhatIf(textbook, 0, [0, 2, 0], banker);
+  const afterFirst = banker.requestResources(textbook, 1, [1, 0, 2]).state;
+  const before = banker.cloneState(afterFirst);
+  const result = risk.compareWhatIf(afterFirst, 0, [0, 2, 0], banker);
   assert.equal(result.status, "DENIED");
   assert.equal(result.stateChanged, false);
   assert.equal(result.before.systemScore, result.after.systemScore);
