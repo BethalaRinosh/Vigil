@@ -5,7 +5,7 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Steps 1–10 of 11 are implemented. Vigil includes accessible feedback, keyboard-focused UI polish, safe-sequence chips, and reduced-motion-aware interactions.
+> **Current status:** All 11 planned steps are implemented. The project includes the learning guide, validated scenario JSON import/export, release documentation, viva notes, a demo script, and automated CI checks.
 
 ## Progress checklist
 
@@ -19,7 +19,7 @@ Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser
 - [x] **Step 8:** Banker's vs. naive policy comparison
 - [x] **Step 9:** Learning guide and JSON scenario import/export
 - [x] **Step 10:** UI polish, animation, accessibility, and responsiveness review
-- [ ] **Step 11:** Final documentation, viva cheatsheet, and demo script
+- [x] **Step 11:** Final documentation, viva cheatsheet, demo script, and release audit
 
 ## What exists now
 
@@ -37,9 +37,10 @@ Risk analysis will be labelled honestly as **heuristic risk analysis**, not mach
 No install or build process is required.
 
 1. Clone or download this repository.
-2. Open `index.html` directly in a modern browser.
-3. Use the left navigation to move between workspace sections.
-4. Use **Toggle appearance** to switch between dark and light themes.
+2. Open `index.html` directly in a modern browser to use the app. No build or dependency installation is required.
+3. To run the regression suite, install Node.js 18 or newer and run `npm test` from the repository root.
+4. Run `npm run check` to check JavaScript syntax and execute all regression tests. GitHub Actions runs these checks on pushes and pull requests to `main`.
+5. Use the left navigation to move between workspace sections and **Toggle appearance** to switch between dark and light themes.
 
 Inter is loaded from Google Fonts when a network connection is available; system fonts are used as fallback. Risk and policy visualizations use native HTML/SVG and do not require a chart library.
 
@@ -52,7 +53,13 @@ Inter is loaded from Google Fonts when a network connection is available; system
 - `risk.js` — pure heuristic risk scoring, bounded safe-sequence enumeration, and what-if analysis.
 - `policy.js` — seeded request-workload generation and Banker's vs. naive policy simulation.
 - `scenario-io.js` — versioned scenario JSON serialization and strict import validation.
-- `tests.js` — Node.js tests for algorithms, risk analysis, deterministic policy workloads, and scenario JSON round-trip/validation.
+- `tests.js` — Node.js regression tests for algorithms, risk analysis, deterministic policy workloads, and scenario JSON round-trip/validation.
+- `package.json` — zero-dependency test and syntax-check commands.
+- `.github/workflows/ci.yml` — automated syntax and regression checks for pushes and pull requests.
+- `docs/ARCHITECTURE.md` — module boundaries, data flow, complexity, and developer commands.
+- `docs/VIVA_CHEATSHEET.md` — definitions, algorithm walkthrough, formulas, limitations, and likely viva questions.
+- `docs/DEMO_SCRIPT.md` — timed presenter walkthrough with checkpoints and recovery notes.
+- `docs/FINAL_AUDIT.md` — final audit scope, verification evidence, and remaining manual checks.
 
 ## Step 9 learning guide and scenario JSON
 
@@ -148,7 +155,7 @@ Run the automated tests from the repository root with Node.js:
 node tests.js
 \`\`\`
 
-The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `(1,0,2)` request, denying P0's subsequent `(0,2,0)` request as unsafe, an unsafe initial state, Need calculations, release behavior and limits, invalid state inputs, safety-trace invariants, and the immutability of denied or waiting transactions.
+The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, request grant/denial/wait behavior, release limits, invalid states, trace invariants, state immutability, risk scoring, capped sequence enumeration including the exact-cap boundary, what-if analysis, seeded policy comparison, and scenario JSON validation. Run `npm test` to execute the current suite.
 
 ## Design and correctness commitments
 
@@ -157,6 +164,10 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Show risk rules and weights transparently; heuristic scores are not formal safety proofs.
 - Vigil is an educational client-side simulation, not an operating-system resource manager.
 - Do not persist scenario state in localStorage.
+
+## Context review — Step 11
+
+**Context review done.** Completed the final project documentation with an architecture map, viva cheatsheet, timed demo script, and final audit report. Added zero-dependency npm scripts for syntax checking and regression tests, plus a GitHub Actions workflow that runs the same checks on pushes and pull requests. The repository audit found and fixed an exact-cap boundary bug in safe-sequence enumeration: the capped flag is now set only when an additional complete sequence exists beyond the limit. Added a regression test for that boundary. The current suite contains 27 tests. Static checks and the full test suite were rerun after the patch; live-browser and hosted CI execution remain environment-dependent checks.
 
 ## Context review — Step 10
 
@@ -263,3 +274,14 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Kept all scenario state in memory without localStorage.
 - Health/bug audit: checked required HTML-to-JavaScript IDs, matching tab/panel keys, script/style paths, algorithm exports, and test coverage. Fixed stale cross-matrix process/resource labels after name edits and removed obsolete helpers.
 - Browser rendering and a fresh repository-clone test run could not be executed in this environment because outbound GitHub network access is unavailable; these remain manual verification items.
+
+
+### Step 11 — Final documentation, viva, demo, and repository audit
+
+- Added `docs/ARCHITECTURE.md` to document runtime dependencies, module boundaries, data flow, algorithm complexity, and limitations.
+- Added `docs/VIVA_CHEATSHEET.md` with core OS definitions, Banker's Algorithm, heuristic explanations, and likely oral-exam questions.
+- Added `docs/DEMO_SCRIPT.md` with a timed walkthrough, checkpoints, and recovery notes.
+- Added `docs/FINAL_AUDIT.md` to record verification scope, evidence, and browser-only checks that remain.
+- Added `package.json` commands for JavaScript syntax checks and regression tests, with no runtime dependencies; added `.gitignore` and GitHub Actions CI.
+- Fixed the safe-sequence enumerator's exact-cap boundary behavior and added a regression test.
+- Verification: current test suite contains 27 cases. Run `npm run check` locally; hosted CI must complete after the workflow commit. Browser rendering, keyboard-only use, and download/file-picker behavior still require a real browser.
