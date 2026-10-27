@@ -16,7 +16,7 @@ Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser
 - [x] **Step 5:** Resource request and release workflow
 - [x] **Step 6:** Heuristic risk engine and formulas
 - [x] **Step 7:** Risk visualizations
-- [ ] **Step 8:** Banker's vs. naive policy comparison
+- [x] **Step 8:** Banker's vs. naive policy comparison
 - [ ] **Step 9:** Learning guide and JSON scenario import/export
 - [ ] **Step 10:** UI polish, animation, accessibility, and responsiveness review
 - [ ] **Step 11:** Final documentation, viva cheatsheet, and demo script
