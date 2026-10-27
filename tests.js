@@ -6,6 +6,7 @@
 const assert = require("node:assert/strict");
 const banker = require("./banker.js");
 const risk = require("./risk.js");
+const policy = require("./policy.js");
 
 const textbook = {
   allocation: [
@@ -191,4 +192,36 @@ test("what-if comparison keeps the same state for denied requests", () => {
   assert.deepEqual(afterFirst, before);
 });
 
-console.log("\nVigil algorithm and heuristic risk tests passed.");
+
+test("policy workload is deterministic for the same seed", () => {
+  const first = policy.generateWorkload(textbook, banker, 25, 5);
+  const second = policy.generateWorkload(textbook, banker, 25, 5);
+  assert.deepEqual(first, second);
+  assert.equal(first.length, 25);
+  assert.ok(first.every((item) => item.request.length === textbook.available.length));
+});
+
+test("Banker's policy rejects unsafe grants while naive policy can enter an unsafe state", () => {
+  const before = banker.cloneState(textbook);
+  const result = policy.comparePolicies(textbook, banker, { trials: 100, seed: 5 });
+  assert.equal(result.initialSafe, true);
+  assert.ok(result.naive.unsafeGrants > 0);
+  assert.ok(result.naive.unsafeTransitions > 0);
+  assert.equal(result.banker.unsafeGrants, 0);
+  assert.equal(result.banker.unsafeTransitions, 0);
+  assert.equal(result.naive.outcomes.length, 100);
+  assert.equal(result.banker.outcomes.length, 100);
+  assert.deepEqual(textbook, before);
+});
+
+test("both policies receive the exact same ordered requests", () => {
+  const result = policy.comparePolicies(textbook, banker, { trials: 40, seed: 123 });
+  assert.deepEqual(result.banker.outcomes.map(({ processIndex, request }) => ({ processIndex, request })), result.naive.outcomes.map(({ processIndex, request }) => ({ processIndex, request })));
+});
+
+test("policy comparison rejects invalid trial counts and seeds", () => {
+  assert.throws(() => policy.comparePolicies(textbook, banker, { trials: 0, seed: 1 }), /Trial count/i);
+  assert.throws(() => policy.comparePolicies(textbook, banker, { trials: 10, seed: -1 }), /Seed/i);
+});
+
+console.log("\nVigil algorithm, risk, and policy tests passed.");
