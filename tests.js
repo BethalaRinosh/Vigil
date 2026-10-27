@@ -7,6 +7,7 @@ const assert = require("node:assert/strict");
 const banker = require("./banker.js");
 const risk = require("./risk.js");
 const policy = require("./policy.js");
+const scenarioIO = require("./scenario-io.js");
 
 const textbook = {
   allocation: [
