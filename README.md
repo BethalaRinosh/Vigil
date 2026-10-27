@@ -77,6 +77,10 @@ The tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `
 - Vigil is an educational client-side simulation, not an operating-system resource manager.
 - Do not persist scenario state in localStorage.
 
+## Context review — Step 3
+
+**Context review done.** Re-checked the full project requirements, this README, and all six existing project files. Vigil naming, vanilla HTML/CSS/JS structure, tab/panel wiring, Step 2 algorithm/test contracts, no-persistence requirement, and step ordering remain consistent. The Step 3 review found stale process/resource labels across sibling matrices after a name edit and two obsolete helper functions; the label synchronization was fixed by re-rendering after a committed name change, and the unused helpers were removed. Static integrity checks found no duplicate HTML IDs, no JavaScript references to missing fixed DOM IDs, and no tab/panel mismatch. A real browser check and fresh `node tests.js` run from a repository clone remain unverified because outbound GitHub network access is unavailable in the current execution environment.
+
 ## Change log
 
 ### Step 1 — Repo setup and scaffold
