@@ -167,7 +167,7 @@ The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, req
 
 ## Context review — Step 11
 
-**Context review done.** Completed the final project documentation with an architecture map, viva cheatsheet, timed demo script, and final audit report. Added zero-dependency npm scripts for syntax checking and regression tests, plus a GitHub Actions workflow that runs the same checks on pushes and pull requests. The repository audit found and fixed an exact-cap boundary bug in safe-sequence enumeration: the capped flag is now set only when an additional complete sequence exists beyond the limit. Added a regression test for that boundary. The current suite contains 27 tests. Static checks and the full test suite were rerun after the patch; live-browser and hosted CI execution remain environment-dependent checks.
+**Context review done.** Completed the final project documentation with an architecture map, viva cheatsheet, timed demo script, and final audit report. Added zero-dependency npm scripts for syntax checking and regression tests, plus a GitHub Actions workflow that runs the same checks on pushes and pull requests. The repository audit found and fixed an exact-cap boundary bug in safe-sequence enumeration: the capped flag is now set only when an additional complete sequence exists beyond the limit. Added a regression test for that boundary. The current suite contains 27 tests. Static checks and the full test suite were rerun after the patch. The user reported that the Step 10 manual browser checklist passed; browser automation and the hosted CI result were not independently confirmed in this audit.
 
 ## Context review — Step 10
 
@@ -191,7 +191,7 @@ The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, req
 
 ## Context review — Step 5
 
-**Context review done.** Re-checked all six project files after Step 5. The existing pure Banker API remains the single source of truth for request/release decisions. The new transaction workspace keeps a cloned runtime state separate from the configured setup, commits only granted requests, blocks invalid releases, displays Available/Allocation/Need after actions, and records an in-memory audit trail. Changing setup values resets the transaction session, and no browser storage is used. Static checks found no duplicate HTML IDs, missing fixed DOM references, tab/panel mismatches, or invalid in-panel navigation targets. Fresh-clone Node tests and browser/console checks remain unverified because GitHub network access is unavailable in the current execution environment.
+**Context review done.** Re-checked all six project files after Step 5. The existing pure Banker API remains the single source of truth for request/release decisions. The new transaction workspace keeps a cloned runtime state separate from the configured setup, commits only granted requests, blocks invalid releases, displays Available/Allocation/Need after actions, and records an in-memory audit trail. Changing setup values resets the transaction session, and no browser storage is used. Static checks found no duplicate HTML IDs, missing fixed DOM references, tab/panel mismatches, or invalid in-panel navigation targets. This was a historical milestone note; the final regression suite is now exposed through `npm test`, and browser verification is recorded separately in the final audit.
 
 ### Step 4 — Step-by-step safety check
 
