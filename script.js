@@ -381,6 +381,110 @@
       host.appendChild(row);
     });
   }
+
+  // Step 7: accessible, dependency-free SVG risk visualizations.
+  const riskSvgNS = "http://www.w3.org/2000/svg";
+  function riskSvgNode(tag, attrs = {}, text = "") {
+    const node = document.createElementNS(riskSvgNS, tag);
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+    if (text !== "") node.textContent = text;
+    return node;
+  }
+  function renderRiskVisualizations(assessment) {
+    const resourceHost = $("risk-resource-chart");
+    const processHost = $("risk-process-chart");
+    const sequenceHost = $("risk-sequence-visual");
+    if (!resourceHost || !processHost || !sequenceHost) return;
+    [resourceHost, processHost, sequenceHost].forEach((host) => host.replaceChildren());
+    const resourceCountValue = scenario.resourceNames.length;
+    const allocatedTotals = scenario.resourceNames.map((_, r) => scenario.allocation.reduce((sum, row) => sum + row[r], 0));
+    const availableTotals = scenario.available.slice();
+    const maxResourceTotal = Math.max(1, ...allocatedTotals.map((value, r) => value + availableTotals[r]));
+    const chartWidth = 520;
+    const left = 78;
+    const right = 20;
+    const plotWidth = chartWidth - left - right;
+    const rowHeight = 34;
+    const resourceHeight = Math.max(66, resourceCountValue * rowHeight + 16);
+    const resourceSvg = riskSvgNode("svg", { viewBox: "0 0 " + chartWidth + " " + resourceHeight, role: "presentation", class: "risk-chart-svg", preserveAspectRatio: "xMinYMin meet" });
+    resourceSvg.appendChild(riskSvgNode("title", {}, "Resource instances: allocated compared with available"));
+    resourceSvg.appendChild(riskSvgNode("desc", {}, "Each resource bar is scaled against the largest total in the current scenario."));
+    scenario.resourceNames.forEach((name, r) => {
+      const y = 12 + r * rowHeight;
+      const allocated = allocatedTotals[r];
+      const available = availableTotals[r];
+      const allocWidth = allocated / maxResourceTotal * plotWidth;
+      const availableWidth = available / maxResourceTotal * plotWidth;
+      resourceSvg.appendChild(riskSvgNode("text", { x: left - 12, y: y + 13, "text-anchor": "end", class: "risk-svg-label" }, name));
+      resourceSvg.appendChild(riskSvgNode("rect", { x: left, y, width: plotWidth, height: 14, rx: 4, class: "risk-svg-track" }));
+      if (allocWidth > 0) resourceSvg.appendChild(riskSvgNode("rect", { x: left, y, width: allocWidth, height: 14, rx: 4, class: "risk-svg-allocated" }));
+      if (availableWidth > 0) resourceSvg.appendChild(riskSvgNode("rect", { x: left + allocWidth, y, width: availableWidth, height: 14, rx: 4, class: "risk-svg-available" }));
+      resourceSvg.appendChild(riskSvgNode("text", { x: Math.min(chartWidth - 2, left + allocWidth + availableWidth + 7), y: y + 12, class: "risk-svg-value" }, String(allocated + available)));
+      resourceSvg.appendChild(riskSvgNode("text", { x: left, y: y + 27, class: "risk-svg-sub-label" }, allocated + " allocated · " + available + " available"));
+    });
+    resourceHost.appendChild(resourceSvg);
+
+    const processScores = assessment.processScores;
+    const processHeight = Math.max(90, processScores.length * 35 + 18);
+    const processSvg = riskSvgNode("svg", { viewBox: "0 0 " + chartWidth + " " + processHeight, role: "presentation", class: "risk-chart-svg", preserveAspectRatio: "xMinYMin meet" });
+    processSvg.appendChild(riskSvgNode("title", {}, "Heuristic risk score by process"));
+    processSvg.appendChild(riskSvgNode("desc", {}, "Select a bar to open the selected process factor details."));
+    [0,25,50,75,100].forEach((tick) => {
+      const x = left + plotWidth * tick / 100;
+      processSvg.appendChild(riskSvgNode("line", { x1:x, y1:5, x2:x, y2:processHeight - 8, class:"risk-svg-grid-line" }));
+      processSvg.appendChild(riskSvgNode("text", { x, y:processHeight - 1, "text-anchor":"middle", class:"risk-svg-axis" }, String(tick)));
+    });
+    processScores.forEach((item, i) => {
+      const y = 11 + i * 35;
+      const group = riskSvgNode("g", { class:"risk-svg-process" + (item.processIndex === selectedRiskProcess ? " is-selected" : ""), tabindex:"0", role:"button", "aria-label":scenario.processNames[item.processIndex] + " risk score " + item.score + " out of 100", "aria-pressed":String(item.processIndex === selectedRiskProcess) });
+      group.appendChild(riskSvgNode("text", { x:left - 12, y:y + 12, "text-anchor":"end", class:"risk-svg-label" }, scenario.processNames[item.processIndex]));
+      group.appendChild(riskSvgNode("rect", { x:left, y, width:plotWidth, height:15, rx:4, class:"risk-svg-track" }));
+      const colorClass = item.score >= 75 ? "risk-svg-high" : item.score >= 50 ? "risk-svg-medium" : "risk-svg-low";
+      group.appendChild(riskSvgNode("rect", { x:left, y, width:Math.max(item.score > 0 ? 2 : 0, plotWidth * item.score / 100), height:15, rx:4, class:colorClass }));
+      group.appendChild(riskSvgNode("text", { x:Math.min(chartWidth - 4, left + plotWidth * item.score / 100 + 7), y:y + 12, class:"risk-svg-value" }, String(item.score)));
+      const choose = () => {
+        selectedRiskProcess = item.processIndex;
+        renderRiskProcessDetail(item);
+        processHost.querySelectorAll(".risk-svg-process").forEach((row) => {
+          const active = row === group;
+          row.classList.toggle("is-selected", active);
+          row.setAttribute("aria-pressed", String(active));
+        });
+        const list = $("risk-process-list");
+        list.querySelectorAll(".risk-process-row").forEach((row) => {
+          const active = row.getAttribute("aria-pressed") === "true" && row.querySelector(".risk-process-name")?.textContent === scenario.processNames[item.processIndex];
+          row.classList.toggle("is-selected", active);
+          row.setAttribute("aria-pressed", String(active));
+        });
+      };
+      group.addEventListener("click", choose);
+      group.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); choose(); }
+      });
+      processSvg.appendChild(group);
+    });
+    processHost.appendChild(processSvg);
+
+    const pathway = document.createElement("div");
+    pathway.className = "risk-pathway";
+    const pathIndices = assessment.safe ? assessment.safeSequence : assessment.partialSequence;
+    pathIndices.forEach((p, i) => {
+      if (i > 0) pathway.appendChild(makeCell("span", "risk-path-arrow", "→"));
+      pathway.appendChild(makeCell("span", "risk-path-node is-complete", scenario.processNames[p]));
+    });
+    if (!assessment.safe) {
+      if (pathIndices.length) pathway.appendChild(makeCell("span", "risk-path-arrow", "→"));
+      assessment.stuckProcesses.forEach((p, i) => {
+        if (i > 0) pathway.appendChild(makeCell("span", "risk-path-arrow", "·"));
+        pathway.appendChild(makeCell("span", "risk-path-node is-blocked", scenario.processNames[p] + " blocked"));
+      });
+    }
+    if (!pathIndices.length && assessment.safe) pathway.appendChild(makeCell("span", "risk-path-empty", "No process sequence available."));
+    sequenceHost.appendChild(pathway);
+    $("risk-path-status").textContent = assessment.safe ? "SAFE · " + pathIndices.length + "/" + scenario.processNames.length + " complete" : "UNSAFE · " + assessment.stuckProcesses.length + " blocked";
+    $("risk-path-status").className = "risk-level-badge " + (assessment.safe ? "risk-low" : "risk-critical");
+  }
+
   function renderRiskWorkspace() {
     if (!$("risk-system-score") || !window.VigilRisk || !window.VigilBanker) return;
     $("risk-scenario-name").textContent = "Current setup scenario";
@@ -397,6 +501,9 @@
       $("risk-recommendation").textContent = "Correct the System setup inputs before calculating risk.";
       $("risk-process-list").replaceChildren(makeCell("p", "request-state-empty", "No scores until the setup is valid."));
       $("risk-factor-bars").replaceChildren();
+      ["risk-resource-chart","risk-process-chart","risk-sequence-visual"].forEach((id) => $(id)?.replaceChildren());
+      $("risk-path-status").textContent = "Invalid setup";
+      $("risk-path-status").className = "risk-level-badge risk-critical";
       renderRiskProcessDetail(null);
       renderRiskWhatIfInputs();
       return;
@@ -458,6 +565,7 @@
     });
     if (selectedRiskProcess >= assessment.processScores.length) selectedRiskProcess = 0;
     renderRiskProcessDetail(assessment.processScores[selectedRiskProcess]);
+    renderRiskVisualizations(assessment);
     renderRiskWhatIfInputs();
   }
   function renderRiskWhatIfInputs() {
