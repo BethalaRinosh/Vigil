@@ -225,4 +225,12 @@ test("policy comparison rejects invalid trial counts and seeds", () => {
   assert.throws(() => policy.comparePolicies(textbook, banker, { trials: 10, seed: -1 }), /Seed/i);
 });
 
+test("scenario JSON round-trips the textbook scenario", () => {
+  const source = { ...textbook, processNames: ["P0", "P1", "P2", "P3", "P4"], resourceNames: ["A", "B", "C"] };
+  const json = scenarioIO.stringifyScenario(source);
+  const parsed = scenarioIO.parseScenario(json);
+  assert.deepEqual(parsed, source);
+  assert.equal(JSON.parse(json).format, "vigil-scenario");
+  assert.equal(JSON.parse(json).version, 1);
+});
 console.log("\nVigil algorithm, risk, and policy tests passed.");
