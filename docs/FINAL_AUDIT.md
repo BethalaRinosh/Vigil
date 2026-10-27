@@ -22,7 +22,7 @@ Safe-sequence enumeration previously set its capped flag as soon as the number o
 
 ## Automated checks
 
-Run the checks locally from the repository root:
+Run the checks locally from the repository root. The final isolated JavaScript harness executed all 27 regression cases successfully, and all six JavaScript files passed syntax parsing:
 
 ```sh
 npm run check:syntax
@@ -59,14 +59,14 @@ Regression coverage includes:
 
 ## Boundaries of this audit
 
-This is a code and static-structure review, not a formal proof that the application is bug-free. No real browser automation or assistive-technology session was run during this audit. The following still deserve manual browser verification:
+This is a code and static-structure review, not a formal proof that the application is bug-free. The user reported that the Step 10 browser checklist passed. No real browser automation or assistive-technology session was independently run during this final audit. The following additional checks are recommended for broader release confidence:
 
 - Download and file-picker behavior across browsers.
 - Keyboard-only navigation across every workspace and interactive SVG control.
 - Screen-reader announcements for live regions and dynamic charts.
 - Actual mobile viewport rendering at 320 px, 375 px, 768 px, and desktop widths.
 - Dark/light theme contrast across all status colors, not only the secondary text token.
-- GitHub Actions workflow result after the workflow file is committed.
+- GitHub Actions hosted workflow result. The workflow is committed, but its hosted run status was not available to confirm during this audit.
 
 ## Known product limitations
 
