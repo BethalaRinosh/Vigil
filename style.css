@@ -139,3 +139,62 @@
 
 .process-current{outline:1px solid rgba(133,170,255,.45);outline-offset:-1px;background:var(--accent-soft)}
 .process-current .row-heading{color:var(--accent)}
+
+/* Vigil Step 5: resource transaction simulator. */
+.request-session-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px;padding:14px 16px}
+.request-session-bar>div{display:grid;gap:3px;min-width:0}
+.request-session-bar strong{font-size:12px}
+.request-session-bar small{color:var(--subtle);font-size:10px}
+.request-session-bar .button{min-height:34px;font-size:10px}
+.request-workspace{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.request-action-card{min-width:0;padding:17px}
+.action-mark{display:grid;width:31px;height:31px;place-items:center;border:1px solid rgba(133,170,255,.3);border-radius:9px;background:var(--accent-soft);color:var(--accent);font-size:17px}
+.release-mark{border-color:rgba(107,213,170,.3);background:var(--green-soft);color:var(--green)}
+.request-field-label{display:block;margin:15px 0 6px;color:var(--muted);font-size:10px;font-weight:700}
+.request-select{width:100%;min-height:39px;padding:8px 10px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface-raised);color:var(--text);font:inherit;font-size:11px}
+.request-select:focus,.request-number-input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.request-vector-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:16px 0 8px}
+.request-vector-heading span{color:var(--subtle);font-size:8px;font-weight:800;letter-spacing:.11em}
+.request-vector-heading small{color:var(--subtle);font-size:9px}
+.request-vector-inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:8px}
+.request-resource-field{display:grid;gap:5px;min-width:0;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface-raised)}
+.request-resource-name{overflow:hidden;color:var(--muted);font-size:10px;font-weight:650;text-overflow:ellipsis}
+.request-number-input{width:100%;min-width:0;min-height:35px;padding:6px 8px;border:1px solid var(--border-strong);border-radius:6px;background:var(--surface);color:var(--text);font:inherit;font-size:12px;font-variant-numeric:tabular-nums}
+.request-submit{width:100%;min-height:38px;margin-top:13px;font-size:10px}
+.request-outcome{display:flex;align-items:flex-start;gap:13px;margin-bottom:14px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.outcome-icon{display:grid;width:34px;height:34px;flex:0 0 auto;place-items:center;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface-raised);color:var(--subtle);font-size:18px;font-weight:800}
+.request-outcome>div{min-width:0;flex:1}
+.outcome-kicker{display:block;margin-bottom:4px;color:var(--subtle);font-size:8px;font-weight:800;letter-spacing:.13em}
+.request-outcome h2{margin:0 0 4px;font-size:14px;font-weight:750}
+.request-outcome p{margin:0;color:var(--muted);font-size:10px;line-height:1.75;overflow-wrap:anywhere}
+.request-outcome.is-granted{border-color:rgba(107,213,170,.35);background:var(--green-soft)}
+.request-outcome.is-granted .outcome-icon{color:var(--green);border-color:rgba(107,213,170,.35)}
+.request-outcome.is-granted h2,.request-outcome.is-granted .outcome-kicker{color:var(--green)}
+.request-outcome.is-denied,.request-outcome.is-error{border-color:rgba(251,127,131,.35);background:rgba(251,127,131,.07)}
+.request-outcome.is-denied .outcome-icon,.request-outcome.is-error .outcome-icon{color:var(--red)}
+.request-outcome.is-denied h2,.request-outcome.is-denied .outcome-kicker,.request-outcome.is-error h2,.request-outcome.is-error .outcome-kicker{color:var(--red)}
+.request-outcome.is-wait{border-color:rgba(229,185,108,.35);background:var(--amber-soft)}
+.request-outcome.is-wait .outcome-icon,.request-outcome.is-wait h2,.request-outcome.is-wait .outcome-kicker{color:var(--amber)}
+.request-outcome.is-released{border-color:rgba(107,213,170,.35);background:var(--green-soft)}
+.request-outcome.is-released .outcome-icon,.request-outcome.is-released h2,.request-outcome.is-released .outcome-kicker{color:var(--green)}
+.request-state-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.request-state-card{min-width:0;padding:15px}
+.request-state-card .card-heading h2{font-size:13px}
+.request-state-empty{margin:0;padding:12px;color:var(--subtle);font-size:10px;line-height:1.7}
+.request-history-card{padding:17px}
+.request-history-list{display:grid}
+.history-empty{padding:22px 10px;border:1px dashed var(--border-strong);border-radius:9px;color:var(--subtle);font-size:10px;text-align:center}
+.history-entry{display:flex;align-items:flex-start;gap:11px;padding:13px 2px;border-bottom:1px solid var(--border)}
+.history-entry:last-child{border-bottom:0}
+.history-entry-icon{display:grid;width:29px;height:29px;flex:0 0 auto;place-items:center;border:1px solid var(--border);border-radius:8px;background:var(--surface-raised);color:var(--accent);font-size:15px}
+.history-entry-body{min-width:0;flex:1}
+.history-title-line{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.history-title-line strong{font-size:10px}
+.history-time{color:var(--subtle);font-size:9px}
+.history-detail{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.7;overflow-wrap:anywhere}
+.history-status{flex:0 0 auto;padding:4px 7px;border:1px solid var(--border);border-radius:6px;font-size:8px;font-weight:800;letter-spacing:.04em}
+.status-granted,.status-released{border-color:rgba(107,213,170,.3);background:var(--green-soft);color:var(--green)}
+.status-denied{border-color:rgba(251,127,131,.3);background:rgba(251,127,131,.08);color:var(--red)}
+.status-wait{border-color:rgba(229,185,108,.3);background:var(--amber-soft);color:var(--amber)}
+@media(max-width:1000px){.request-state-grid{grid-template-columns:1fr 1fr}.request-state-grid .request-state-card:last-child{grid-column:1/-1}}
+@media(max-width:700px){.request-session-bar{align-items:flex-start;flex-direction:column}.request-session-bar .button{width:100%}.request-workspace{grid-template-columns:1fr}.request-state-grid{grid-template-columns:1fr}.request-state-grid .request-state-card:last-child{grid-column:auto}.history-entry{flex-wrap:wrap}.history-status{margin-left:40px}}
