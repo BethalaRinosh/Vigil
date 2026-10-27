@@ -1,0 +1,14 @@
+{
+  "name": "vigil-deadlock-avoidance",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser-based OS learning lab for Banker's Algorithm and heuristic risk analysis.",
+  "scripts": {
+    "test": "node tests.js",
+    "check:syntax": "node --check banker.js && node --check risk.js && node --check policy.js && node --check scenario-io.js && node --check script.js && node --check tests.js",
+    "check": "npm run check:syntax && npm test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
