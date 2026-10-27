@@ -158,6 +158,10 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Vigil is an educational client-side simulation, not an operating-system resource manager.
 - Do not persist scenario state in localStorage.
 
+## Context review — Step 9
+
+**Context review done.** The Learn & export tab now contains six OS concept cards and an expandable limitations section. `scenario-io.js` owns serialization and validation independently of the DOM. Import rejects malformed JSON, unsupported formats/versions, invalid dimensions, missing or oversized names, negative or non-integer values, and Allocation above Maximum. The UI validates the complete document before loading it, then resets the safety trace and request session; setup changes clear policy results. File import is capped at 1 MB. Static checks confirm dependency order, unique IDs, matching tabs/panels, and no missing fixed DOM references. Algorithm, risk, policy, and scenario JSON tests pass in an isolated JavaScript harness. Manual browser verification of downloads and file import remains required.
+
 ## Context review — Step 8
 
 **Context review done.** The comparison uses the same generated request objects in the same order for both policies, starts each policy from an independent clone of the configured scenario, and never mutates the setup. The naive policy checks remaining Need and Available but intentionally omits the post-grant safety test. The Banker's policy delegates each request to `VigilBanker.requestResources`. Summary metrics distinguish unsafe grants, safe-to-unsafe transitions, and unsafe post-request rounds. The ledger labels the first 20 requests and displays both outcomes. Invalid trial counts and seeds are rejected. Static checks confirm the policy script loads after `banker.js` and before `script.js`, all fixed DOM references exist, IDs are unique, and tab/panel mappings remain aligned. All 23 algorithm, risk, and policy tests passed in an isolated JavaScript harness; the user has separately confirmed earlier UI pages look correct, but this new Step 8 workflow still needs the specific browser tests listed in the handoff.
@@ -183,6 +187,15 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Reset the trace when the scenario changes to avoid stale results.
 - Fixed final unsafe-state rendering to clamp vector reads to the last valid trace record.
 - Added two Node tests for safety trace invariants. Run `node tests.js` from the repository root.
+
+### Step 9 — Learning guide and JSON scenario import/export
+
+- Added an OS quick reference for Need, Work, safe/unsafe states, Banker's requests, Coffman conditions, heuristic risk, and model limitations.
+- Added versioned JSON serialization, download, text-editor import, and file-picker import.
+- Added strict schema validation before applying an imported scenario; invalid imports do not overwrite the current setup.
+- Successful imports reset safety/request sessions and clear policy comparison results.
+- Added scenario JSON round-trip and format/version tests.
+- Verification: syntax and static DOM checks passed; isolated algorithm/risk/policy/scenario JSON tests passed. Browser tests for download and file import remain.
 
 ### Step 8 — Banker's vs. naive policy comparison
 
