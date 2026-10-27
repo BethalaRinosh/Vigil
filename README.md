@@ -5,7 +5,7 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Steps 1–9 of 11 are implemented. Vigil now compares Banker's safety-aware allocation with a naive availability-only policy using the same reproducible request workload.
+> **Current status:** Steps 1–9 of 11 are implemented. Vigil includes the OS learning guide and validated, versioned JSON scenario import/export.
 
 ## Progress checklist
 
@@ -26,7 +26,7 @@ Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser
 - Responsive dark/light theme shell with Vigil branding.
 - Seven navigation tabs: Overview, System setup, Safety check, Requests, Risk intelligence, Policy comparison, and Learn & export.
 - Keyboard navigation for tabs and theme shortcuts (D for dark, L for light).
-- The policy comparison is functional; the Learn & export workspace remains scheduled for Step 9.
+- The Learn & export workspace now contains the OS quick reference and JSON scenario tools.
 - Reduced-motion CSS support and responsive layouts.
 - No framework, build step, localStorage, or runtime dependency for the scaffold.
 
@@ -51,7 +51,8 @@ Inter is loaded from Google Fonts when a network connection is available; system
 - `banker.js` — pure Need, safety, request, release, and state-validation functions.
 - `risk.js` — pure heuristic risk scoring, bounded safe-sequence enumeration, and what-if analysis.
 - `policy.js` — seeded request-workload generation and Banker's vs. naive policy simulation.
-- `tests.js` — Node.js tests for algorithms, risk analysis, deterministic workloads, policy comparison, and unsafe-grant behavior.
+- `scenario-io.js` — versioned scenario JSON serialization and strict import validation.
+- `tests.js` — Node.js tests for algorithms, risk analysis, deterministic policy workloads, and scenario JSON round-trip/validation.
 
 ## Step 8 policy comparison
 
