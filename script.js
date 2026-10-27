@@ -386,7 +386,8 @@
     const need = safetyResult ? safetyResult.need : scenario.maximum.map((row,p) => row.map((max,r) => Number.isInteger(max) && Number.isInteger(scenario.allocation[p]?.[r]) && max >= scenario.allocation[p][r] ? max-scenario.allocation[p][r] : "!"));
     for (let p = 0; p < processCount(); p += 1) {
       const tr = document.createElement("tr");
-      const done = safetyCursor >= 0 && safetyResult?.trace[safetyCursor]?.finish[p];
+      const traceIndex = safetyResult ? Math.min(safetyCursor, safetyResult.trace.length - 1) : -1;
+      const done = traceIndex >= 0 && safetyResult.trace[traceIndex].finish[p];
       tr.classList.toggle("process-finished", Boolean(done));
       tr.appendChild(makeCell("th", "row-heading", scenario.processNames[p]));
       for (let r = 0; r < resourceCount(); r += 1) {
@@ -404,8 +405,9 @@
     if (!workHost || !finishHost) return;
     workHost.replaceChildren();
     finishHost.replaceChildren();
-    const work = safetyCursor >= 0 && safetyResult ? safetyResult.trace[safetyCursor].work : scenario.available;
-    const finish = safetyCursor >= 0 && safetyResult ? safetyResult.trace[safetyCursor].finish : Array(processCount()).fill(false);
+    const traceIndex = safetyResult ? Math.min(safetyCursor, safetyResult.trace.length - 1) : -1;
+    const work = traceIndex >= 0 ? safetyResult.trace[traceIndex].work : scenario.available;
+    const finish = traceIndex >= 0 ? safetyResult.trace[traceIndex].finish : Array(processCount()).fill(false);
     scenario.resourceNames.forEach((name, r) => workHost.appendChild(makeVectorChip(name, work[r] ?? "!", "work-chip")));
     scenario.processNames.forEach((name, p) => {
       const item = document.createElement("div");
