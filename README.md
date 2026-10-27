@@ -79,7 +79,7 @@ Run the automated tests from the repository root with Node.js:
 node tests.js
 \`\`\`
 
-The tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `(1,0,2)` request, denying P0's subsequent `(0,2,0)` request as unsafe, an unsafe initial state, Need calculations, release behavior, and invalid state inputs.
+The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `(1,0,2)` request, denying P0's subsequent `(0,2,0)` request as unsafe, an unsafe initial state, Need calculations, release behavior and limits, invalid state inputs, safety-trace invariants, and the immutability of denied or waiting transactions.
 
 ## Design and correctness commitments
 
