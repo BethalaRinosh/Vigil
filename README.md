@@ -5,7 +5,7 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Steps 1–5 of 11 are implemented. The pure algorithm layer, interactive scenario editor, safety trace, and resource transaction simulator are available.
+> **Current status:** Steps 1–6 of 11 are implemented. Vigil now includes a transparent heuristic risk engine alongside the formal Banker's safety check.
 
 ## Progress checklist
 
@@ -14,7 +14,8 @@ Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser
 - [x] **Step 3:** Setup/input panel and validation
 - [x] **Step 4:** Step-by-step safety check
 - [x] **Step 5:** Resource request and release workflow
-- [ ] **Step 6:** Heuristic risk engine and formulas
+- [x] **Step 6:** Heuristic risk engine and formulas
+- [ ] **Step 7:** Policy comparison (not started)
 - [ ] **Step 7:** Risk visualizations
 - [ ] **Step 8:** Banker's vs. naive policy comparison
 - [ ] **Step 9:** Learning guide and JSON scenario import/export
@@ -50,6 +51,37 @@ Inter is loaded from Google Fonts when a network connection is available; system
 - `script.js` — in-memory scenario editor, safety walkthrough, resource transaction state, validation, and action history.
 - `banker.js` — pure Need, safety, request, release, and state-validation functions.
 - `tests.js` — Node.js tests for safety traces, request outcomes, transaction immutability, releases, and invalid inputs.
+
+## Step 6 heuristic risk analysis
+
+The **Risk intelligence** workspace evaluates the current configured scenario with a deterministic, explainable heuristic. This is **not machine learning**, does not predict a probability of deadlock, and does not replace the formal Banker's safety algorithm. It reports a per-process score from 0–100, a system-level score and risk band, resource utilization, a bounded count of distinct safe sequences, minimum slack, and plain-language recommendations.
+
+### Per-process score
+
+`Process score = 0.40 × Need pressure + 0.35 × Competition + 0.25 × Sequence fragility`
+
+- **Need pressure:** for each resource, `Need / (Need + Available) × 100`; average the resource values. A zero Need contributes zero.
+- **Competition:** for resources with positive Need, count the fraction of other processes that hold or still claim that resource; average across resource types.
+- **Sequence fragility:** a normalized safe-sequence position, where later positions score higher. A process blocked in an unsafe partial proof receives 100 for this component.
+- Bands: Low (0–24), Medium (25–49), High (50–74), Critical (75–100).
+
+### System-level score
+
+`System score = 0.35 × Utilization + 0.35 × Sequence scarcity + 0.30 × Slack pressure`
+
+- **Utilization:** `total allocated / (total allocated + total Available) × 100`. If no instances exist, utilization is zero.
+- **Sequence scarcity:** 100 if there is no safe sequence; otherwise `min(100, 100 / √(distinct safe sequence count))`.
+- **Slack pressure:** 100 when minimum slack is negative; otherwise `100 / (1 + minimum slack)`.
+- A state that fails the formal safety check is always classified as **Critical**, regardless of its weighted score.
+- The distinct-sequence enumerator stops at 1,000 sequences to bound computation. The UI displays `≥1,000` when that cap is reached; the score uses the capped count.
+
+The minimum slack is the smallest `Work[r] - Need[p][r]` margin along the deterministic safe proof. For an unsafe state, it is the best available margin among blocked processes at the point the safety scan stops, which is negative when no blocked process fits Work.
+
+### What-if analysis
+
+The what-if lab evaluates a hypothetical request using the same Banker's request algorithm, then compares the heuristic score before and after a tentative grant. A granted hypothetical request can change the after-state assessment; a denied or waiting request leaves the state unchanged. This analysis does not commit changes to the request simulator or the configured setup. Recommendations describe the outcome and heuristic trend, while the formal safety decision remains authoritative.
+
+**Interpretation caution:** These hand-designed weights are transparent heuristic choices, not empirically calibrated probabilities. A low score does not guarantee future safety, and a high score alone does not prove deadlock.
 
 ## Step 5 resource requests and releases
 
@@ -89,6 +121,10 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Vigil is an educational client-side simulation, not an operating-system resource manager.
 - Do not persist scenario state in localStorage.
 
+## Context review — Step 6
+
+**Context review done.** Re-checked the six existing files and the new `risk.js` module against the project constraints. Step 6 is explicitly labeled heuristic risk analysis, not machine learning. The scoring inputs and weights are exposed in the UI; the formal Banker API remains the source of truth for safety and request decisions. The system score combines utilization, safe-sequence scarcity, and minimum slack; distinct sequence enumeration is capped at 1,000. What-if comparisons use a tentative request and never mutate the configured scenario. The risk module is pure JavaScript and requires no build step or browser storage. The 19-case test suite passed in an isolated JavaScript harness using a small Node-assert-compatible shim; native Node execution and live browser interaction have not been independently verified in this environment.
+
 ## Context review — Step 5
 
 **Context review done.** Re-checked all six project files after Step 5. The existing pure Banker API remains the single source of truth for request/release decisions. The new transaction workspace keeps a cloned runtime state separate from the configured setup, commits only granted requests, blocks invalid releases, displays Available/Allocation/Need after actions, and records an in-memory audit trail. Changing setup values resets the transaction session, and no browser storage is used. Static checks found no duplicate HTML IDs, missing fixed DOM references, tab/panel mismatches, or invalid in-panel navigation targets. Fresh-clone Node tests and browser/console checks remain unverified because GitHub network access is unavailable in the current execution environment.
@@ -102,6 +138,16 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Reset the trace when the scenario changes to avoid stale results.
 - Fixed final unsafe-state rendering to clamp vector reads to the last valid trace record.
 - Added two Node tests for safety trace invariants. Run `node tests.js` from the repository root.
+
+### Step 6 — Heuristic risk engine and formulas
+
+- Added `risk.js`, a pure heuristic analysis module that enumerates distinct safe sequences up to a 1,000-sequence cap and calculates process/system risk indicators.
+- Added per-process 0–100 scores from Need pressure, competition, and safe-sequence position.
+- Added system risk levels from utilization, sequence scarcity, and minimum slack; formally unsafe states are always Critical.
+- Replaced the Risk intelligence placeholder with system metrics, selectable process details, contributing-factor bars, recommendations, and an expandable formula/weights explanation.
+- Added a what-if request lab that compares before/after risk and safety outcomes without committing changes.
+- Added five automated cases covering risk bounds, unsafe-state classification, sequence cap, granted what-if, and denied what-if immutability.
+- Verification: all 19 tests passed in an isolated JavaScript harness. Static file/ID/tab checks are being re-run; native Node and live-browser verification remain pending.
 
 ### Step 5 — Resource request and release workflow
 
@@ -136,5 +182,5 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Added Textbook example, Unsafe example, Random generate, Reset, and Validate scenario actions.
 - Added responsive matrix scrolling and input-specific accessibility labels.
 - Kept all scenario state in memory without localStorage.
-- Health/bug audit: checked all six planned files, required HTML-to-JavaScript IDs, matching tab/panel keys, script/style paths, algorithm exports, and existing required algorithm-test cases. Fixed stale cross-matrix process/resource labels after name edits and removed obsolete helpers.
+- Health/bug audit: checked required HTML-to-JavaScript IDs, matching tab/panel keys, script/style paths, algorithm exports, and test coverage. Fixed stale cross-matrix process/resource labels after name edits and removed obsolete helpers.
 - Browser rendering and a fresh repository-clone test run could not be executed in this environment because outbound GitHub network access is unavailable; these remain manual verification items.
