@@ -454,7 +454,6 @@
     nextButton.disabled = false;
     const trace = safetyResult.trace;
     const displayedIndex = Math.min(safetyCursor, trace.length - 1);
-    const count = Math.max(0, safetyCursor + 1);
     stepCount.textContent = safetyCursor < 0 ? "Step 0" : "Step " + (safetyCursor + 1);
     progress.textContent = safetyCursor < 0 ? "READY" : "TRACE " + Math.min(safetyCursor + 1, trace.length) + " / " + trace.length;
     fill.style.width = Math.round((Math.max(0, safetyCursor + 1) / (trace.length + (safetyResult.safe ? 0 : 1))) * 100) + "%";
