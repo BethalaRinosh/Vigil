@@ -100,3 +100,5 @@ The tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `
 - Added Textbook example, Unsafe example, Random generate, Reset, and Validate scenario actions.
 - Added responsive matrix scrolling and input-specific accessibility labels.
 - Kept all scenario state in memory without localStorage.
+- Health/bug audit: checked all six planned files, required HTML-to-JavaScript IDs, matching tab/panel keys, script/style paths, algorithm exports, and existing required algorithm-test cases. Fixed stale cross-matrix process/resource labels after name edits and removed obsolete helpers.
+- Browser rendering and a fresh repository-clone test run could not be executed in this environment because outbound GitHub network access is unavailable; these remain manual verification items.
