@@ -321,6 +321,130 @@
     });
   }
 
+
+  // Step 8: compare the formal safety-aware policy with a naive availability-only policy.
+  function policyStatusClass(status) {
+    if (status === "GRANTED") return "policy-status-granted";
+    if (status === "MUST WAIT") return "policy-status-wait";
+    if (status === "DENIED UNSAFE") return "policy-status-unsafe";
+    return "policy-status-denied";
+  }
+  function policyMetric(label, value, detail, className = "") {
+    const card = makeCell("div", "policy-metric card-surface" + (className ? " " + className : ""));
+    card.append(makeCell("span", "policy-metric-label", label), makeCell("strong", "policy-metric-value", String(value)), makeCell("small", "policy-metric-detail", detail));
+    return card;
+  }
+  function policyOutcomeLabel(outcome) {
+    if (outcome.status === "DENIED" && /unsafe state/i.test(outcome.reason)) return "DENIED UNSAFE";
+    return outcome.status;
+  }
+  function renderPolicyComparison() {
+    const host = $("policy-results");
+    if (!host || !window.VigilPolicy || !window.VigilBanker) return;
+    host.replaceChildren();
+    const errors = collectErrors();
+    if (errors.length) {
+      host.appendChild(makeCell("p", "policy-error card-surface", "Cannot compare policies: " + errors[0] + " Correct the System setup first."));
+      return;
+    }
+    const trials = Number($("policy-trials").value);
+    const seed = Number($("policy-seed").value);
+    let result;
+    try {
+      result = window.VigilPolicy.comparePolicies(scenario, window.VigilBanker, { trials, seed });
+    } catch (error) {
+      host.appendChild(makeCell("p", "policy-error card-surface", "Comparison could not run: " + (error.message || "invalid inputs")));
+      return;
+    }
+    const intro = makeCell("div", "policy-result-intro");
+    intro.append(
+      makeCell("p", "", result.trialCount + " requests · seed " + result.seed + " · identical ordered workload for both policies"),
+      makeCell("p", result.initialSafe ? "policy-initial-safe" : "policy-initial-unsafe", result.initialSafe ? "Initial state is formally safe." : "Warning: the configured starting state is already unsafe. Interpret unsafe-round counts in that context.")
+    );
+    host.appendChild(intro);
+
+    const comparison = makeCell("div", "policy-summary-grid");
+    [result.banker, result.naive].forEach((policy, index) => {
+      const card = makeCell("section", "policy-summary-card card-surface" + (index ? " policy-naive-card" : " policy-banker-card"));
+      const header = makeCell("div", "policy-summary-header");
+      header.append(makeCell("div", "eyebrow", index ? "AVAILABILITY-ONLY BASELINE" : "SAFETY-AWARE POLICY"), makeCell("h2", "", policy.name));
+      card.appendChild(header);
+      const metrics = makeCell("div", "policy-metric-grid");
+      metrics.append(
+        policyMetric("Requests granted", policy.grants, "of " + result.trialCount + " requests"),
+        policyMetric("Must wait", policy.waits, "Not enough Available resources"),
+        policyMetric("Need violations", policy.deniedNeed, "Rejected by both policies"),
+        policyMetric("Unsafe grants", policy.unsafeGrants, "Granted request left state unsafe", policy.unsafeGrants ? "policy-metric-danger" : ""),
+        policyMetric("Unsafe rounds", policy.unsafeRounds, "Post-request states found unsafe", policy.unsafeRounds ? "policy-metric-danger" : ""),
+        policyMetric("Unsafe denials", policy.deniedUnsafe, "Rejected by safety check")
+      );
+      card.appendChild(metrics);
+      const final = makeCell("div", "policy-final-state " + (policy.finalSafe ? "policy-final-safe" : "policy-final-unsafe"));
+      final.append(makeCell("strong", "", policy.finalSafe ? "FINAL STATE: SAFE" : "FINAL STATE: UNSAFE"), makeCell("span", "", policy.finalSafe ? "A complete safe sequence exists." : "No complete safe sequence exists."));
+      card.appendChild(final);
+      comparison.appendChild(card);
+    });
+    host.appendChild(comparison);
+
+    const difference = makeCell("section", "policy-difference card-surface");
+    difference.appendChild(makeCell("h2", "", "What the experiment shows"));
+    const delta = result.unsafeGrantDifference;
+    const roundDelta = result.unsafeStateDifference;
+    if (result.naive.unsafeGrants > 0 || result.naive.unsafeTransitions > 0) {
+      difference.appendChild(makeCell("p", "policy-difference-main", "The naive policy granted " + result.naive.unsafeGrants + " request(s) that left the system unsafe and crossed from safe to unsafe " + result.naive.unsafeTransitions + " time(s)."));
+    } else if (result.initialSafe && result.naive.finalSafe) {
+      difference.appendChild(makeCell("p", "policy-difference-main", "This workload did not expose an unsafe grant. That does not mean the naive policy guarantees safety; try a different seed or a longer workload."));
+    } else {
+      difference.appendChild(makeCell("p", "policy-difference-main", "No safe-to-unsafe transition was observed in this workload. Compare the trial ledger and try another seed."));
+    }
+    difference.appendChild(makeCell("p", "policy-difference-detail", "Unsafe post-request states across rounds: naive " + result.naive.unsafeRounds + " vs. Banker's " + result.banker.unsafeRounds + " (difference " + (roundDelta > 0 ? "+" : "") + roundDelta + "). Unsafe grants: naive " + result.naive.unsafeGrants + " vs. Banker's " + result.banker.unsafeGrants + " (difference " + (delta > 0 ? "+" : "") + delta + "). Counts are workload outcomes, not probabilities."));
+    difference.appendChild(makeCell("p", "policy-difference-detail", "The naive policy does not deliberately grant beyond remaining Need or beyond Available. Its only omitted safeguard is the post-grant safety test."));
+    host.appendChild(difference);
+
+    const ledger = makeCell("section", "policy-ledger card-surface");
+    const ledgerHeading = makeCell("div", "card-heading");
+    ledgerHeading.append(makeCell("div", "", ""), makeCell("span", "matrix-caption", "FIRST " + Math.min(20, result.trialCount) + " OF " + result.trialCount));
+    const ledgerTitle = makeCell("h2", "", "Request-by-request ledger");
+    ledger.append(ledgerTitle, makeCell("p", "card-help", "Each row is the same request sent to both policies. Statuses reveal whether Banker's safety check rejected a request that the naive policy granted."));
+    const tableWrap = makeCell("div", "policy-ledger-scroll");
+    const table = makeCell("table", "policy-ledger-table");
+    const thead = makeCell("thead", "");
+    const headRow = makeCell("tr", "");
+    ["Trial","Request","Banker's result","Naive result","Naive state after request"].forEach((label) => headRow.appendChild(makeCell("th", "", label)));
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+    const tbody = makeCell("tbody", "");
+    result.workload.slice(0, 20).forEach((item, index) => {
+      const bankOutcome = result.banker.outcomes[index];
+      const naiveOutcome = result.naive.outcomes[index];
+      const row = makeCell("tr", naiveOutcome.unsafeTransition ? "policy-row-unsafe" : "");
+      const requestLabel = scenario.processNames[item.processIndex] + " (" + item.request.map((value, r) => scenario.resourceNames[r] + ":" + value).join(", ") + ")";
+      const cells = [
+        String(item.trial),
+        requestLabel,
+        policyOutcomeLabel(bankOutcome),
+        policyOutcomeLabel(naiveOutcome),
+        naiveOutcome.safeAfter ? "SAFE" : "UNSAFE"
+      ];
+      cells.forEach((value, cellIndex) => {
+        const cell = makeCell(cellIndex === 0 ? "th" : "td", cellIndex === 2 ? policyStatusClass(policyOutcomeLabel(bankOutcome)) : cellIndex === 3 ? policyStatusClass(policyOutcomeLabel(naiveOutcome)) : cellIndex === 4 ? (naiveOutcome.safeAfter ? "policy-state-safe" : "policy-state-unsafe") : "", value);
+        if (cellIndex === 0) cell.scope = "row";
+        row.appendChild(cell);
+      });
+      tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+    tableWrap.appendChild(table);
+    ledger.appendChild(tableWrap);
+    if (result.trialCount > 20) ledger.appendChild(makeCell("p", "policy-ledger-note", "For readability, the ledger shows the first 20 trials. All " + result.trialCount + " trials are included in the summary metrics."));
+    host.appendChild(ledger);
+  }
+
+  function resetPolicyComparison() {
+    const host = $("policy-results");
+    if (host) host.replaceChildren(makeCell("div", "whatif-empty", "The system setup changed. Run the comparison again to evaluate this scenario."));
+  }
+
   function renderAll() {
     renderMatrix("maximum-matrix", "maximum");
     renderMatrix("allocation-matrix", "allocation");
@@ -328,7 +452,10 @@
     refreshDerived();
     $("setup-state-label").textContent = processCount() + " process" + (processCount() === 1 ? "" : "es") + " · " + resourceCount() + " resource type" + (resourceCount() === 1 ? "" : "s");
     renderRiskWorkspace();
+    resetPolicyComparison();
   }
+
+  $("policy-run")?.addEventListener("click", renderPolicyComparison);
 
   document.querySelectorAll("[data-count]").forEach((button) => button.addEventListener("click", () => {
     const input = $(button.dataset.count === "process" ? "process-count" : "resource-count");
