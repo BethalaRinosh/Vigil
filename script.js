@@ -388,7 +388,9 @@
       const tr = document.createElement("tr");
       const traceIndex = safetyResult ? Math.min(safetyCursor, safetyResult.trace.length - 1) : -1;
       const done = traceIndex >= 0 && safetyResult.trace[traceIndex].finish[p];
+      const activeProcess = traceIndex > 0 && safetyResult.trace[traceIndex].completedProcess === p;
       tr.classList.toggle("process-finished", Boolean(done));
+      tr.classList.toggle("process-current", Boolean(activeProcess));
       tr.appendChild(makeCell("th", "row-heading", scenario.processNames[p]));
       for (let r = 0; r < resourceCount(); r += 1) {
         const val = need[p]?.[r] ?? "!";
