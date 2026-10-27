@@ -9,7 +9,7 @@
   const themeIcon = themeButton?.querySelector(".theme-icon");
   const labels = { overview: "Overview", setup: "System setup", safety: "Safety check", requests: "Requests", risk: "Risk intelligence", compare: "Policy comparison", learn: "Learn & export" };
 
-  // Vigil keeps navigation in memory only. It intentionally does not use localStorage.
+  // Vigil keeps navigation in memory only. It intentionally does not use browser storage.
   function activateTab(name, moveFocus = false) {
     const targetTab = tabs.find((tab) => tab.dataset.tab === name);
     const targetPanel = panels.find((panel) => panel.dataset.panel === name);
@@ -63,7 +63,7 @@
     if (event.key.toLowerCase() === "l") setTheme("light");
   });
 
-  // Vigil starts at Overview. The scaffold needs no remote state or browser storage.
+  // Vigil starts at Overview. The scaffold needs no remote state or persistence.
   activateTab("overview");
   setTheme(root.dataset.theme === "light" ? "light" : "dark");
 })();
