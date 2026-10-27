@@ -1,287 +1,300 @@
-# Vigil
+# VIGIL
+### Deadlock Avoidance with Heuristic Risk Intelligence
 
-**VIGIL: Deadlock Avoidance with Heuristic Risk Intelligence**  
-Full project title: **Resource Allocation and Deadlock Prevention using Banker's Algorithm with Intelligent Risk Analysis**
+[![CI](https://github.com/BethalaRinosh/Vigil/actions/workflows/ci.yml/badge.svg)](https://github.com/BethalaRinosh/Vigil/actions/workflows/ci.yml)
 
-Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
+**VIGIL is an interactive Operating Systems learning lab for exploring resource allocation, verifying safe states with Banker's Algorithm, and understanding how resource pressure affects system risk.** It combines a step-by-step safety proof with an explainable heuristic risk layer and a controlled comparison against a naive allocation policy.
 
-> **Current status:** All 11 planned steps are implemented. The project includes the learning guide, validated scenario JSON import/export, release documentation, viva notes, a demo script, and automated CI checks.
+Built as a second-year B.Tech CSE (AI & ML) Operating Systems micro-project, VIGIL runs entirely in the browser. It has no backend, database, framework, build step, or npm runtime dependencies.
 
-## Progress checklist
+> **Important:** VIGIL is an educational simulator, not an operating-system kernel, scheduler, live system monitor, machine-learning model, or production deadlock-prevention service. The formal safety result comes from Banker's Algorithm. Risk scores are transparent heuristics and must not be interpreted as probabilities.
 
-- [x] **Step 1:** Repo setup and scaffold
-- [x] **Step 2:** Core Banker's algorithms and Node tests
-- [x] **Step 3:** Setup/input panel and validation
-- [x] **Step 4:** Step-by-step safety check
-- [x] **Step 5:** Resource request and release workflow
-- [x] **Step 6:** Heuristic risk engine and formulas
-- [x] **Step 7:** Risk visualizations
-- [x] **Step 8:** Banker's vs. naive policy comparison
-- [x] **Step 9:** Learning guide and JSON scenario import/export
-- [x] **Step 10:** UI polish, animation, accessibility, and responsiveness review
-- [x] **Step 11:** Final documentation, viva cheatsheet, demo script, and release audit
+## Contents
 
-## What exists now
+- [Why VIGIL?](#why-vigil)
+- [Features](#features)
+- [Run the application](#run-the-application)
+- [Run tests](#run-tests)
+- [Explore the seven workspaces](#explore-the-seven-workspaces)
+- [How the algorithms work](#how-the-algorithms-work)
+- [Risk intelligence: formulas and interpretation](#risk-intelligence-formulas-and-interpretation)
+- [Policy comparison experiment](#policy-comparison-experiment)
+- [Scenario JSON import and export](#scenario-json-import-and-export)
+- [Project structure](#project-structure)
+- [Technology and design](#technology-and-design)
+- [Limitations and assumptions](#limitations-and-assumptions)
+- [Documentation](#documentation)
+- [Contributing and support](#contributing-and-support)
 
-- Responsive dark/light theme shell with Vigil branding.
-- Seven navigation tabs: Overview, System setup, Safety check, Requests, Risk intelligence, Policy comparison, and Learn & export.
-- Keyboard navigation for tabs and theme shortcuts (D for dark, L for light).
-- The Learn & export workspace now contains the OS quick reference and JSON scenario tools.
-- Reduced-motion CSS support and responsive layouts.
-- No framework, build step, localStorage, or runtime dependency for the scaffold.
+## Why VIGIL?
 
-Risk analysis will be labelled honestly as **heuristic risk analysis**, not machine learning. Heuristic scores are explanatory signals and do not replace the formal safety algorithm.
+Deadlock avoidance is easier to understand when the state changes are visible. VIGIL lets you configure a small resource-allocation system, follow the safety algorithm one decision at a time, submit hypothetical resource requests, and compare the outcomes of two allocation policies under the same workload.
 
-## How to run
+The project keeps **formal correctness** and **heuristic interpretation** separate:
 
-No install or build process is required.
+- **Banker's Algorithm** determines whether a state is safe and whether a tentative request can be granted.
+- **Risk intelligence** explains resource pressure and sequence fragility using explicit, inspectable rules.
+- **Policy comparison** demonstrates what can happen when a policy checks resource availability but skips the post-grant safety test.
 
-1. Clone or download this repository.
-2. Open `index.html` directly in a modern browser to use the app. No build or dependency installation is required.
-3. To run the regression suite, install Node.js 18 or newer and run `npm test` from the repository root.
-4. Run `npm run check` to check JavaScript syntax and execute all regression tests. GitHub Actions runs these checks on pushes and pull requests to `main`.
-5. Use the left navigation to move between workspace sections and **Toggle appearance** to switch between dark and light themes.
+## Features
 
-Inter is loaded from Google Fonts when a network connection is available; system fonts are used as fallback. Risk and policy visualizations use native HTML/SVG and do not require a chart library.
+- **Editable system scenarios:** configure 1–10 processes and 1–6 resource types, edit process/resource names, and change Maximum, Allocation, and Available values.
+- **Live Need matrix:** calculate `Need = Maximum − Allocation` automatically.
+- **Step-by-step safety proof:** inspect Work, Finish flags, each process completion, the resulting safe sequence, or the blocked processes in an unsafe state.
+- **Resource request simulator:** see whether a request is granted, denied, or must wait, with a reason. Tentative grants are committed only when the resulting state is safe.
+- **Resource release workflow:** release allocated instances with validation and a transaction history.
+- **Explainable risk intelligence:** view system and per-process heuristic scores, risk bands, resource utilization, safe-sequence scarcity, minimum slack, and recommendations.
+- **Interactive visualizations:** explore allocated versus available resources, process risk profiles, and the completion pathway.
+- **What-if analysis:** evaluate a hypothetical request and compare before/after heuristic assessments without committing it to the active scenario.
+- **Policy comparison:** replay the same seeded request workload against Banker's Algorithm and an availability-only naive policy.
+- **Scenario portability:** validate, import, inspect, and download versioned scenario JSON.
+- **Built-in learning guide:** review OS concepts, assumptions, and the distinction between safe and unsafe states.
+- **Responsive themes and keyboard focus:** switch between dark and light appearance, use keyboard-visible focus styles, and respect reduced-motion preferences.
+- **Regression tests and CI:** run the algorithm suite locally or through GitHub Actions.
 
-## Project files
+## Run the application
 
-- `index.html` — page structure, navigation, scenario editor, safety trace, request/release workspace, and risk intelligence visualizations.
-- `style.css` — responsive theme, editable matrices, safety trace, request/release forms, risk cards, SVG chart styles, and history timeline.
-- `script.js` — in-memory scenario editor, safety walkthrough, request/release workflow, risk UI, interactive SVG charts, what-if comparisons, and validation.
-- `banker.js` — pure Need, safety, request, release, and state-validation functions.
-- `risk.js` — pure heuristic risk scoring, bounded safe-sequence enumeration, and what-if analysis.
-- `policy.js` — seeded request-workload generation and Banker's vs. naive policy simulation.
-- `scenario-io.js` — versioned scenario JSON serialization and strict import validation.
-- `tests.js` — Node.js regression tests for algorithms, risk analysis, deterministic policy workloads, and scenario JSON round-trip/validation.
-- `package.json` — zero-dependency test and syntax-check commands.
-- `.github/workflows/ci.yml` — automated syntax and regression checks for pushes and pull requests.
-- `docs/ARCHITECTURE.md` — module boundaries, data flow, complexity, and developer commands.
-- `docs/VIVA_CHEATSHEET.md` — definitions, algorithm walkthrough, formulas, limitations, and likely viva questions.
-- `docs/DEMO_SCRIPT.md` — timed presenter walkthrough with checkpoints and recovery notes.
-- `docs/FINAL_AUDIT.md` — final audit scope, verification evidence, and remaining manual checks.
+### Requirements
 
-## Step 9 learning guide and scenario JSON
+- A modern browser.
+- Optional, for development checks: [Node.js](https://nodejs.org/) 18 or newer.
+- An internet connection is only needed to fetch the optional Inter font from Google Fonts. The app falls back to system fonts.
 
-The Learn & export workspace covers Allocation, Maximum, Need, Available, Work, safe versus unsafe states, Banker's request handling, the Coffman conditions, heuristic risk scores, and model assumptions.
+### Option A: open locally
 
-Scenario files use a versioned JSON envelope with `format: "vigil-scenario"`, `version: 1`, an export timestamp, and a `scenario` object containing Allocation, Maximum, Available, process names, and resource names.
+1. Clone the repository or download the source:
+   ```sh
+   git clone https://github.com/BethalaRinosh/Vigil.git
+   cd Vigil
+   ```
+2. Open `index.html` in your browser.
 
-Use **Show current JSON** to inspect or copy the current setup, **Download current scenario** to save a JSON file, paste a document into the editor and choose **Validate & load scenario**, or choose a JSON file to import it.
+No `npm install`, bundler, server, API key, or environment configuration is required for normal use.
 
-Imports validate the format/version, process/resource limits, names, matrix dimensions, non-negative integer values, and `Allocation ≤ Maximum` before changing the setup. Files larger than 1 MB are rejected. A failed import leaves the current setup unchanged. A successful import resets the safety trace and request session and clears policy comparison results.
+### Option B: run a local static server
 
-Vigil does not save scenarios to browser storage automatically; exported files remain under the user's control.
+If you prefer serving the files locally, use any static-file server. For example, with Python installed:
 
-## Step 8 policy comparison
+```sh
+python -m http.server 8000
+```
 
-The **Policy comparison** workspace runs a seeded workload through two policies from the same starting scenario:
+Then open [http://localhost:8000](http://localhost:8000). Stop the server with `Ctrl+C`.
 
-- **Banker's Algorithm:** a request is granted only when it is within the process's remaining Need, within current Available resources, and the tentative state passes the formal safety check.
-- **Naive availability-only policy:** a request is granted when it is within remaining Need and current Available resources, but no post-grant safety check is performed.
+## Run tests
 
-The workload is generated once and replayed in the same order for both policies. Choose 50, 100, 250, or 500 trials and a seed from 0 to 2,147,483,647. The same seed and setup reproduce the same requests. The default textbook example uses seed 5 to demonstrate unsafe grants under the naive policy. A different seed may produce no unsafe grant; this is a valid outcome, not evidence that the naive policy guarantees safety.
+From the repository root, with Node.js 18 or newer:
 
-Results include grants, waits, Need rejections, unsafe denials, unsafe grants, unsafe post-request states, final safety, and a request-by-request ledger for the first 20 trials. Unsafe grants count granted requests that leave the resulting state unsafe. Unsafe transitions count safe-to-unsafe changes. Unsafe rounds count post-request states that are unsafe, so a single unsafe transition can contribute multiple unsafe rounds if the state remains unsafe.
+```sh
+npm test
+```
 
-The experiment does not deliberately grant requests beyond Need or beyond Available; it isolates the impact of omitting the safety check. It is a deterministic teaching simulation, not a proof about all possible request workloads. Changing the System setup invalidates the displayed result and requires a new run.
+Runs the regression suite.
 
-## Step 7 risk visualizations
+```sh
+npm run check:syntax
+```
 
-The Risk Intelligence workspace includes three visual summaries rendered as native SVG and HTML, with no chart-library dependency:
+Checks syntax for all six JavaScript files.
 
-- **Allocated vs. available:** resource-by-resource stacked bars show allocated instances compared with instances still Available. Each resource uses the same scale within the chart, with numeric counts alongside the bars.
-- **Process risk profile:** a 0–100 bar chart compares each process's heuristic score. Bars are keyboard-focusable and selectable; choosing a bar updates the process-factor detail and corresponding process-list selection.
-- **Completion pathway:** process nodes visualize the deterministic safety proof. A safe state shows the complete sequence; an unsafe state shows the partial completion sequence followed by blocked processes. The badge explicitly marks SAFE or UNSAFE.
+```sh
+npm run check
+```
 
-The charts redraw from the current scenario and heuristic assessment. They use the existing `VigilBanker` safety result and `VigilRisk` assessment rather than calculating their own safety verdicts. The charts are responsive, use the current light/dark theme variables, and expose accessible labels and keyboard interaction for process selection. No external chart package, build step, or browser storage was added.
+Runs syntax checks followed by the full regression suite. No npm packages need to be installed.
 
-## Step 6 heuristic risk analysis
+The suite covers the textbook scenario and safe sequence, grant/deny/wait behavior, releases, invalid states, trace invariants, input immutability, risk scoring, safe-sequence enumeration limits, what-if analysis, deterministic policy comparison, and scenario JSON validation. The latest local run reported **27 passing tests** and successful syntax checks.
 
-The **Risk intelligence** workspace evaluates the current configured scenario with a deterministic, explainable heuristic. This is **not machine learning**, does not predict a probability of deadlock, and does not replace the formal Banker's safety algorithm. It reports a per-process score from 0–100, a system-level score and risk band, resource utilization, a bounded count of distinct safe sequences, minimum slack, and plain-language recommendations.
+GitHub Actions is configured to run the syntax checks and tests on pushes and pull requests targeting `main`. See the [workflow](.github/workflows/ci.yml) for details.
+
+## Explore the seven workspaces
+
+| Workspace | What you can do |
+| --- | --- |
+| **Overview** | Get oriented and jump into the lab. |
+| **System setup** | Configure processes, resource types, Maximum, Allocation, and Available; load textbook, unsafe, or random examples. |
+| **Safety check** | Step through the safety algorithm, play or pause the trace, and inspect the final proof. |
+| **Requests** | Submit resource requests and releases, inspect outcomes, and review the action history. |
+| **Risk intelligence** | Explore system/process risk scores, factor breakdowns, charts, completion pathway, and what-if analysis. |
+| **Policy comparison** | Compare Banker's Algorithm with a naive availability-only policy over a reproducible workload. |
+| **Learn & export** | Review core concepts and import, validate, inspect, or download scenario JSON. |
+
+### A quick first experiment
+
+1. Open **System setup** and load the textbook example.
+2. Open **Safety check** and step through the proof. One valid safe sequence is `P1 → P3 → P4 → P0 → P2`.
+3. Open **Requests** and try process `P1` requesting `(1, 0, 2)`. The request should be granted for the textbook state.
+4. Then try process `P0` requesting `(0, 2, 0)` in the resulting runtime session. It should be denied if the tentative grant makes the state unsafe.
+5. Open **Risk intelligence** to compare the formal safety result with the heuristic signals.
+6. Open **Policy comparison** and run the default textbook experiment to see why omitting the safety test can allow unsafe grants.
+
+The UI's request session is separate from the configured setup. If you want to restart the experiment, use **Reset to setup** in the Requests workspace or reload the textbook scenario.
+
+## How the algorithms work
+
+### Banker's Algorithm
+
+For each process (P_i) and resource type (R_j):
+
+```text
+Need[i][j] = Maximum[i][j] - Allocation[i][j]
+```
+
+The safety check starts with:
+
+- `Work = Available`
+- `Finish[i] = false` for every process
+
+It repeatedly finds an unfinished process whose entire Need vector is less than or equal to Work. That process can finish, so its allocated resources are returned to Work and it is marked finished. If every process can finish, the state is **safe** and the completion order is a safe sequence. If the scan stops with unfinished processes, the state is **unsafe** under the declared maximum claims and current allocation.
+
+A resource request is checked against the process's remaining Need and current Available resources. VIGIL tentatively applies a valid request to a cloned state and runs the safety check. The tentative state is committed only if it remains safe. Invalid, denied, and waiting requests do not mutate the caller's state.
+
+The safety scan uses deterministic tie-breaking to produce a repeatable demonstration sequence. Other valid safe sequences may exist.
+
+### Result vocabulary
+
+- **SAFE:** at least one complete process completion sequence exists under the model assumptions.
+- **UNSAFE:** the safety algorithm cannot find a complete sequence from the current state. This does not necessarily mean a real system is already deadlocked.
+- **GRANTED:** a request passed validation, availability, and the post-grant safety check.
+- **DENIED:** the request is invalid for the process or its tentative grant would leave the state unsafe.
+- **MUST WAIT:** the request exceeds currently available resources but may be possible later.
+
+## Risk intelligence: formulas and interpretation
+
+Risk intelligence is a **deterministic, hand-designed heuristic**, not machine learning and not a calibrated probability of deadlock. Its purpose is to make resource pressure and safety-proof fragility easier to inspect.
 
 ### Per-process score
 
-`Process score = 0.40 × Need pressure + 0.35 × Competition + 0.25 × Sequence fragility`
+```text
+Process score =
+  0.40 × Need pressure
++ 0.35 × Competition
++ 0.25 × Sequence fragility
+```
 
-- **Need pressure:** for each resource, `Need / (Need + Available) × 100`; average the resource values. A zero Need contributes zero.
-- **Competition:** for resources with positive Need, count the fraction of other processes that hold or still claim that resource; average across resource types.
-- **Sequence fragility:** a normalized safe-sequence position, where later positions score higher. A process blocked in an unsafe partial proof receives 100 for this component.
-- Bands: Low (0–24), Medium (25–49), High (50–74), Critical (75–100).
+- **Need pressure:** for each resource, `Need / (Need + Available) × 100`; the resource values are averaged. A zero Need contributes zero.
+- **Competition:** for resources with positive Need, the fraction of other processes that hold or still claim that resource; averaged across resource types.
+- **Sequence fragility:** a normalized safe-sequence position, with later positions scoring higher. A process left blocked by an unsafe partial proof receives 100 for this factor.
+
+Per-process bands: **Low** (0–24), **Medium** (25–49), **High** (50–74), and **Critical** (75–100).
 
 ### System-level score
 
-`System score = 0.35 × Utilization + 0.35 × Sequence scarcity + 0.30 × Slack pressure`
+```text
+System score =
+  0.35 × Utilization
++ 0.35 × Sequence scarcity
++ 0.30 × Slack pressure
+```
 
-- **Utilization:** `total allocated / (total allocated + total Available) × 100`. If no instances exist, utilization is zero.
-- **Sequence scarcity:** 100 if there is no safe sequence; otherwise `min(100, 100 / √(distinct safe sequence count))`.
+- **Utilization:** `total allocated / (total allocated + total Available) × 100`. If there are no resource instances, utilization is zero.
+- **Sequence scarcity:** 100 if no safe sequence exists; otherwise `min(100, 100 / √(distinct safe sequence count))`.
 - **Slack pressure:** 100 when minimum slack is negative; otherwise `100 / (1 + minimum slack)`.
 - A state that fails the formal safety check is always classified as **Critical**, regardless of its weighted score.
-- The distinct-sequence enumerator stops at 1,000 sequences to bound computation. The UI displays `≥1,000` when that cap is reached; the score uses the capped count.
 
-The minimum slack is the smallest `Work[r] - Need[p][r]` margin along the deterministic safe proof. For an unsafe state, it is the most negative per-process minimum margin among blocked processes at the point the safety scan stops, so a negative value signals that the safety scan cannot find a process whose Need fits Work.
+Safe-sequence enumeration is capped at 1,000 sequences to bound computation. When the cap is reached, the result is a lower bound rather than an exact total.
 
-### What-if analysis
+### How to read the score
 
-The what-if lab evaluates a hypothetical request using the same Banker's request algorithm, then compares the heuristic score before and after a tentative grant. A granted hypothetical request can change the after-state assessment; a denied or waiting request leaves the state unchanged. This analysis does not commit changes to the request simulator or the configured setup. Recommendations describe the outcome and heuristic trend, while the formal safety decision remains authoritative.
+Treat the score as an **explanatory indicator**, not a verdict. The safety algorithm decides whether the current state is safe under the model. A low heuristic score does not guarantee future safety, and a high score alone does not prove deadlock. The weights are design choices, not values learned or calibrated from a dataset.
 
-**Interpretation caution:** These hand-designed weights are transparent heuristic choices, not empirically calibrated probabilities. A low score does not guarantee future safety, and a high score alone does not prove deadlock.
+## Policy comparison experiment
 
-## Step 5 resource requests and releases
+The Policy comparison workspace creates one deterministic, seeded sequence of resource requests and replays that exact ordered workload against two policies from equivalent copies of the starting scenario.
 
-Open **Resource requests** to experiment with the current System setup. The request vector is checked by the pure `VigilBanker.requestResources()` API. Vigil reports **GRANTED**, **DENIED**, or **MUST WAIT** with the algorithm's reason. A request is only committed when the tentative state passes the safety check; denied and waiting requests leave the runtime state unchanged. The release workflow validates that a process cannot return more instances than its current Allocation, then updates Available and Allocation.
+- **Banker's policy:** validates each request against remaining Need and Available, then grants it only if the tentative state is safe.
+- **Naive availability-only policy:** validates Need and Available but deliberately skips the post-grant safety check.
 
-The workspace shows the current runtime Available vector, Allocation matrix, and Need matrix, plus a newest-first action history with timestamps, vectors, outcomes, and reasons. **Reset to setup** restores the current System setup values and clears the history. Editing or loading a different setup scenario also starts a fresh transaction session. Transaction state and history are memory-only and are not persisted. The request simulator has its own runtime copy so experimenting does not silently overwrite the configured setup scenario.
+You can choose 50, 100, 250, or 500 trials and a seed from 0 to 2,147,483,647. Reusing the same setup and seed reproduces the workload. The default textbook experiment uses seed 5 to demonstrate unsafe grants under the naive policy; other seeds may produce no unsafe grants, which is a valid result.
 
-## Step 4 safety walkthrough
+The report distinguishes grants, waits, Need rejections, unsafe denials, unsafe grants, safe-to-unsafe transitions, unsafe post-request rounds, final safety, and a request-by-request ledger for the first 20 trials. This is a controlled teaching experiment, not a proof about every possible workload.
 
-Open the **Safety check** tab after loading or editing a scenario in **System setup**. **Next step** advances the trace, **Auto play** advances at a readable pace and can be paused, and **Reset** returns to the initial state. The view shows the current Work vector, Finish flags, Need matrix, process completion order, and plain-English reasoning for each step. A safe state ends with the proven completion sequence and final Work vector. An unsafe state ends when no unfinished process has Need less than or equal to Work and names the processes that remain unfinished. Changing scenario inputs resets the walkthrough so the trace cannot silently refer to an old state.
+## Scenario JSON import and export
 
-The safety trace is computed by the pure `VigilBanker.safetyCheck()` function from `banker.js`; the UI does not reimplement the algorithm. A safe state is not a guarantee that every future request will be safe, and an unsafe state does not necessarily mean the system is already deadlocked.
+Scenario JSON uses a versioned envelope:
 
-## Step 3 scenario editor
+- `format`: `"vigil-scenario"`
+- `version`: `1`
+- `exportedAt`: export timestamp
+- `scenario`: process/resource names, Allocation, Maximum, and Available
 
-The **System setup** tab supports 1–10 processes and 1–6 resource types. Process and resource names are editable, as are the Maximum and Allocation matrices and Available vector. Need is computed live as Maximum minus Allocation and is not directly editable. Inline validation checks integer/non-negative values, matrix bounds, and Allocation ≤ Maximum. The editor includes Textbook example, Unsafe example, Random generate, Reset, and Validate scenario actions. Changing dimensions preserves values in the overlapping part of the matrices and initializes new cells to zero. Scenario data stays in memory and is not persisted.
+From **Learn & export**, you can show the current JSON, download the current scenario, paste JSON into the editor, or choose a JSON file to import.
 
-The Textbook example loads the classic five-process, three-resource example. The Unsafe example loads a compact three-process, two-resource state that has no safe sequence.
+Before loading, VIGIL validates the format and version, dimensions, names, non-negative integer values, and `Allocation ≤ Maximum`. Imports larger than 1 MB are rejected. A failed import leaves the current setup unchanged. A successful import resets the safety trace and request session and clears policy comparison results.
 
-## Step 2 algorithm API and tests
+Scenario state and request history are held in memory only. VIGIL does not automatically persist them to browser storage.
 
-`banker.js` exports `calculateNeed(allocation, maximum)`, `safetyCheck(state)`, `requestResources(state, processIndex, request)`, `releaseResources(state, processIndex, release)`, `validateState(state)`, and `cloneState(state)`. The module runs in Node.js and does not access the DOM. Requests return `GRANTED`, `DENIED`, or `MUST WAIT`; tentative grants are applied to a cloned state and accepted only if the resulting state is safe. The caller's state is not mutated. The safety check scans eligible processes circularly from the process after the last completion. This is a deterministic tie-breaking choice: any eligible process may be selected by the textbook safety algorithm, and this scan yields the requested demonstration sequence.
+## Project structure
 
-Run the automated tests from the repository root with Node.js:
+```text
+Vigil/
+├── index.html                  # App structure and seven workspaces
+├── style.css                   # Themes, responsive layout, charts, accessibility styles
+├── script.js                   # UI orchestration and in-memory interaction state
+├── banker.js                   # Need, safety, request/release, validation, cloning
+├── risk.js                     # Heuristic scores, sequence enumeration, what-if analysis
+├── policy.js                   # Seeded workloads and policy comparison
+├── scenario-io.js              # Versioned scenario JSON validation and serialization
+├── tests.js                    # Node.js regression tests
+├── package.json                # Test and syntax-check scripts
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # Automated syntax and regression checks
+└── docs/
+    ├── ARCHITECTURE.md         # Modules, data flow, algorithm boundaries
+    ├── VIVA_CHEATSHEET.md      # Concepts, formulas, and viva preparation
+    ├── DEMO_SCRIPT.md          # Suggested project demonstration
+    └── FINAL_AUDIT.md          # Audit scope, evidence, and remaining checks
+```
 
-\`\`\`sh
-node tests.js
-\`\`\`
+### Architecture at a glance
 
-The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, request grant/denial/wait behavior, release limits, invalid states, trace invariants, state immutability, risk scoring, capped sequence enumeration including the exact-cap boundary, what-if analysis, seeded policy comparison, and scenario JSON validation. Run `npm test` to execute the current suite.
+The app is a static client-side application. The pure algorithm modules are kept separate from the DOM controller so their logic can be tested in Node.js. Script loading follows the dependency order `banker.js` → `risk.js` → `policy.js` → `scenario-io.js` → `script.js`.
 
-## Design and correctness commitments
+The configured scenario, request/release session, and displayed results are kept in JavaScript memory. Policy comparison starts each policy from an independent copy and replays the same workload. Scenario imports are validated in full before replacing the current setup.
 
-- Implement textbook safety and resource-request algorithms independently of the DOM, with Node tests.
-- Green means safe/granted, amber means caution, and red means unsafe/denied. Meaning will never rely on color alone.
-- Show risk rules and weights transparently; heuristic scores are not formal safety proofs.
-- Vigil is an educational client-side simulation, not an operating-system resource manager.
-- Do not persist scenario state in localStorage.
+## Technology and design
 
-## Context review — Step 11
+- **Frontend:** semantic HTML, CSS, and vanilla JavaScript.
+- **Algorithms:** pure JavaScript modules with browser and CommonJS exports.
+- **Visualizations:** native HTML and SVG; no charting library is required.
+- **Testing:** Node.js built-in runtime, custom regression tests, and `node --check`.
+- **Automation:** GitHub Actions on Node.js 20.
+- **Runtime dependencies:** none.
+- **Build system:** none.
+- **Persistence/backend:** none; scenario and session data are not automatically stored or sent to a server.
 
-**Context review done.** Completed the final project documentation with an architecture map, viva cheatsheet, timed demo script, and final audit report. Added zero-dependency npm scripts for syntax checking and regression tests, plus a GitHub Actions workflow that runs the same checks on pushes and pull requests. The repository audit found and fixed an exact-cap boundary bug in safe-sequence enumeration: the capped flag is now set only when an additional complete sequence exists beyond the limit. Added a regression test for that boundary. The current suite contains 27 tests. Static checks and the full test suite were rerun after the patch. The user reported that the Step 10 manual browser checklist passed; browser automation and the hosted CI result were not independently confirmed in this audit.
+## Limitations and assumptions
 
-## Context review — Step 10
+- Processes declare their maximum resource claims in advance, as required by the Banker's model.
+- The simulation models discrete resource instances and does not observe a real computer's processes or resource usage.
+- A safe state means a completion sequence exists under the configured assumptions; it does not guarantee every future request will be safe.
+- An unsafe state means the safety proof fails from the current allocation; it does not by itself prove that a live system is currently deadlocked.
+- Risk weights are heuristic design choices and are not empirically calibrated probabilities.
+- Safe-sequence enumeration is bounded to prevent excessive computation.
+- Data is not persisted between page reloads.
+- The optional web font needs internet access; system fonts are used as a fallback.
+- Automated tests cover the pure logic and syntax. They do not replace cross-browser, screen-reader, or full end-to-end testing.
 
-**Context review done.** Added an accessible live toast region for scenario import/export outcomes, a chip-based safe completion sequence in the final safety verdict, and a subtle step-count pulse. Focus-visible outlines now cover common interactive controls, the JSON file picker is keyboard reachable despite its visually hidden input, and narrow-screen toast/sequence layouts are bounded. Existing panel transitions and reduced-motion support remain in place; new animations are explicitly disabled for reduced-motion users. Verification: all 26 algorithm, risk, policy, and scenario-JSON tests passed in an isolated JavaScript harness; all six JavaScript files passed syntax checks. Static checks found no duplicate HTML IDs, missing fixed DOM references, or dependency-order errors. The light-theme secondary text color now clears a 4.5:1 contrast ratio against the page background. The user reported that the Step 10 browser checks passed. This audit did not independently automate a browser session, so those checks are user-confirmed rather than independently reproduced here.
+## Documentation
 
-## Context review — Step 9
+- [Architecture and data flow](docs/ARCHITECTURE.md)
+- [Viva cheatsheet](docs/VIVA_CHEATSHEET.md)
+- [Demo script](docs/DEMO_SCRIPT.md)
+- [Final audit and remaining checks](docs/FINAL_AUDIT.md)
+- [CI workflow](.github/workflows/ci.yml)
 
-**Context review done.** The Learn & export tab now contains six OS concept cards and an expandable limitations section. `scenario-io.js` owns serialization and validation independently of the DOM. Import rejects malformed JSON, unsupported formats/versions, invalid dimensions, missing or oversized names, negative or non-integer values, and Allocation above Maximum. The UI validates the complete document before loading it, then resets the safety trace and request session; setup changes clear policy results. File import is capped at 1 MB. Static checks confirm dependency order, unique IDs, matching tabs/panels, and no missing fixed DOM references. Algorithm, risk, policy, and scenario JSON tests pass in an isolated JavaScript harness. Manual browser verification of downloads and file import remains required.
+## Contributing and support
 
-## Context review — Step 8
+Suggestions and bug reports are welcome through [GitHub Issues](https://github.com/BethalaRinosh/Vigil/issues). When reporting a bug, include the steps to reproduce it, the scenario being used, the expected outcome, and the actual outcome. Avoid including private or sensitive information in issue reports.
 
-**Context review done.** The comparison uses the same generated request objects in the same order for both policies, starts each policy from an independent clone of the configured scenario, and never mutates the setup. The naive policy checks remaining Need and Available but intentionally omits the post-grant safety test. The Banker's policy delegates each request to `VigilBanker.requestResources`. Summary metrics distinguish unsafe grants, safe-to-unsafe transitions, and unsafe post-request rounds. The ledger labels the first 20 requests and displays both outcomes. Invalid trial counts and seeds are rejected. Static checks confirm the policy script loads after `banker.js` and before `script.js`, all fixed DOM references exist, IDs are unique, and tab/panel mappings remain aligned. All 23 algorithm, risk, and policy tests passed in an isolated JavaScript harness; the user has separately confirmed earlier UI pages look correct, but this new Step 8 workflow still needs the specific browser tests listed in the handoff.
+For code changes:
 
-## Context review — Step 7
+1. Keep the pure algorithm modules independent of the DOM where practical.
+2. Add or update regression tests for behavior changes.
+3. Run `npm run check` before opening a pull request.
+4. Keep the formal safety result distinct from heuristic risk interpretation.
 
-**Context review done.** Re-checked the seven repository files after adding the visualizations. The risk charts are based on the same scenario and risk assessment used by Step 6: allocated/available counts come from the scenario vectors, process bars use existing process scores, and the pathway uses the formal safety result's complete or partial sequence. Process chart selection updates the existing process detail view, including keyboard activation. SVG nodes are created with DOM APIs and text is inserted as text, not raw HTML. Static checks confirm chart containers and fixed DOM references exist, scripts load in dependency order, tabs match panels, and no duplicate IDs were introduced. The 19 algorithm/risk tests passed previously in an isolated JavaScript harness; this turn's latest full suite and live browser rendering still require verification.
+## License
 
-## Context review — Step 6
-
-**Context review done.** Re-checked the six existing files and the new `risk.js` module against the project constraints. Step 6 is explicitly labeled heuristic risk analysis, not machine learning. The scoring inputs and weights are exposed in the UI; the formal Banker API remains the source of truth for safety and request decisions. The system score combines utilization, safe-sequence scarcity, and minimum slack; distinct sequence enumeration is capped at 1,000. What-if comparisons use a tentative request and never mutate the configured scenario. The risk module is pure JavaScript and requires no build step or browser storage. The 19-case test suite passed in an isolated JavaScript harness using a small Node-assert-compatible shim; native Node execution and live browser interaction have not been independently verified in this environment.
-
-## Context review — Step 5
-
-**Context review done.** Re-checked all six project files after Step 5. The existing pure Banker API remains the single source of truth for request/release decisions. The new transaction workspace keeps a cloned runtime state separate from the configured setup, commits only granted requests, blocks invalid releases, displays Available/Allocation/Need after actions, and records an in-memory audit trail. Changing setup values resets the transaction session, and no browser storage is used. Static checks found no duplicate HTML IDs, missing fixed DOM references, tab/panel mismatches, or invalid in-panel navigation targets. This was a historical milestone note; the final regression suite is now exposed through `npm test`, and browser verification is recorded separately in the final audit.
-
-### Step 4 — Step-by-step safety check
-
-- Replaced the Safety check placeholder with a step-by-step algorithm trace.
-- Added Next step, Auto play / Pause, and Reset controls.
-- Added live Work and Finish vectors, Need matrix, current-process highlight, and plain-English explanations.
-- Added final SAFE / UNSAFE verdicts, safe sequence, final Work vector, and stuck-process list.
-- Reset the trace when the scenario changes to avoid stale results.
-- Fixed final unsafe-state rendering to clamp vector reads to the last valid trace record.
-- Added two Node tests for safety trace invariants. Run `node tests.js` from the repository root.
-
-### Step 9 — Learning guide and JSON scenario import/export
-
-- Added an OS quick reference for Need, Work, safe/unsafe states, Banker's requests, Coffman conditions, heuristic risk, and model limitations.
-- Added versioned JSON serialization, download, text-editor import, and file-picker import.
-- Added strict schema validation before applying an imported scenario; invalid imports do not overwrite the current setup.
-- Successful imports reset safety/request sessions and clear policy comparison results.
-- Added scenario JSON round-trip and format/version tests.
-- Verification: syntax and static DOM checks passed; isolated algorithm/risk/policy/scenario JSON tests passed. Browser tests for download and file import remain.
-
-### Step 8 — Banker's vs. naive policy comparison
-
-- Added `policy.js` with seeded, reproducible workload generation and two independent policy simulations.
-- Implemented the naive policy as grant-if-within-Need-and-Available, intentionally omitting the formal post-grant safety check.
-- Added trial-count and seed controls, per-policy metrics, unsafe-state comparison, and a first-20-trials request ledger.
-- Scenario edits clear old results so stale comparison metrics are not mistaken for current data.
-- Added four tests for seeded determinism, identical request order, unsafe-grant contrast, input validation, and non-mutation.
-- Milestone verification: the policy comparison's seeded workload, identical request ordering, unsafe-grant contrast, and input validation were covered by the then-current isolated test suite. The final current suite and manual browser pass are summarized in the Step 11 audit.
-
-### Step 7 — Risk visualizations
-
-- Added responsive SVG visualizations for resource allocation versus availability, per-process risk scores, and the safety completion pathway.
-- Process risk bars are selectable by mouse or keyboard and stay synchronized with the process-factor detail and process list.
-- Safe states show the full completion sequence; unsafe states show the partial sequence and blocked processes.
-- The charts use existing scenario and risk-analysis data, follow the light/dark theme, and require no chart dependency.
-- Milestone verification: source syntax and static repository checks were used during implementation. The final audit distinguishes automated code checks from real-browser rendering and interaction checks.
-
-### Step 6 — Heuristic risk engine and formulas
-
-- Added `risk.js`, a pure heuristic analysis module that enumerates distinct safe sequences up to a 1,000-sequence cap and calculates process/system risk indicators.
-- Added per-process 0–100 scores from Need pressure, competition, and safe-sequence position.
-- Added system risk levels from utilization, sequence scarcity, and minimum slack; formally unsafe states are always Critical.
-- Replaced the Risk intelligence placeholder with system metrics, selectable process details, contributing-factor bars, recommendations, and an expandable formula/weights explanation.
-- Added a what-if request lab that compares before/after risk and safety outcomes without committing changes.
-- Added five automated cases covering risk bounds, unsafe-state classification, sequence cap, granted what-if, and denied what-if immutability.
-- Milestone verification: risk scoring and what-if logic were tested in the isolated harness at that stage. The current regression suite also includes the later policy and scenario JSON cases.
-
-### Step 5 — Resource request and release workflow
-
-- Replaced the request placeholder with request and release forms that adapt to the current process/resource setup.
-- Routed requests through `VigilBanker.requestResources()` and releases through `VigilBanker.releaseResources()`.
-- Added GRANTED, DENIED, MUST WAIT, and RELEASED outcomes with plain-language explanations.
-- Added current runtime Available, Allocation, and Need views, plus a newest-first, in-memory history with timestamps.
-- Kept transaction state separate from the setup scenario; granted requests and valid releases update only the runtime copy. Reset or setup changes clear the transaction history.
-- Added tests for unsafe tentative-grant immutability, waiting-request immutability, and release limits.
-- Health audit at this milestone: static file/ID/tab checks passed. The final regression suite is now runnable through `npm test`; browser-specific behavior remains a separate manual check.
-
-## Change log
-
-### Step 1 — Repo setup and scaffold
-
-- Created the HTML, CSS, and JavaScript foundation with Vigil branding.
-- Added all seven navigation tabs and responsive placeholder panels.
-- Added in-memory navigation, dark/light theme toggle, keyboard navigation, and reduced-motion support.
-- Added the README and progress checklist.
-
-### Step 2 — Core algorithms and tests
-
-- Implemented Need calculation, the textbook safety algorithm, resource request handling, resource release, and input validation in `banker.js`.
-- Added Node.js tests for the required textbook sequence and request outcomes, an unsafe example, releases, and invalid inputs.
-- Executed the 9 test cases under Node.js in a local test harness; all passed after adjusting the deterministic safe-sequence scan to match the required textbook demonstration.
-- Algorithm logic remains pure and separate from the UI.
-
-### Step 3 — Setup/input panel
-
-- Added editable process/resource dimensions, process names, resource names, Maximum and Allocation matrices, and Available vector.
-- Added live Need calculation and inline input validation.
-- Added Textbook example, Unsafe example, Random generate, Reset, and Validate scenario actions.
-- Added responsive matrix scrolling and input-specific accessibility labels.
-- Kept all scenario state in memory without localStorage.
-- Health/bug audit: checked required HTML-to-JavaScript IDs, matching tab/panel keys, script/style paths, algorithm exports, and test coverage. Fixed stale cross-matrix process/resource labels after name edits and removed obsolete helpers.
-- The final source and regression suite are now covered by repeatable npm commands and a CI workflow. Real-browser rendering and interactions are not simulated by the Node.js suite.
-
-
-### Step 11 — Final documentation, viva, demo, and repository audit
-
-- Added `docs/ARCHITECTURE.md` to document runtime dependencies, module boundaries, data flow, algorithm complexity, and limitations.
-- Added `docs/VIVA_CHEATSHEET.md` with core OS definitions, Banker's Algorithm, heuristic explanations, and likely oral-exam questions.
-- Added `docs/DEMO_SCRIPT.md` with a timed walkthrough, checkpoints, and recovery notes.
-- Added `docs/FINAL_AUDIT.md` to record verification scope, evidence, and browser-only checks that remain.
-- Added `package.json` commands for JavaScript syntax checks and regression tests, with no runtime dependencies; added `.gitignore` and GitHub Actions CI.
-- Fixed the safe-sequence enumerator's exact-cap boundary behavior and added a regression test.
-- Verification: the current suite contains 27 cases and passes in the isolated JavaScript harness used for this audit. Run `npm run check` locally to reproduce syntax and regression checks. The GitHub Actions workflow is committed, but its hosted run status could not be independently confirmed here. The user reported that the Step 10 browser checks passed; browser automation is not part of the Node.js suite.
+No `LICENSE` file is currently present in this repository. Until a license is added, do not assume that the project is available for unrestricted reuse or redistribution.
