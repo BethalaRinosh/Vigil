@@ -137,8 +137,7 @@
       th.scope = "col";
       th.appendChild(makeNameInput(scenario.resourceNames[r], "Name for resource " + (r + 1), (value) => {
         scenario.resourceNames[r] = value || "R" + r;
-        if (!value) renderAll();
-        else updateResourceLabels();
+        renderAll();
       }));
       headRow.appendChild(th);
     }
@@ -151,8 +150,7 @@
       rowHeader.scope = "row";
       rowHeader.appendChild(makeNameInput(scenario.processNames[p], "Name for process " + (p + 1), (value) => {
         scenario.processNames[p] = value || "P" + p;
-        if (!value) renderAll();
-        else updateProcessLabels();
+        renderAll();
       }));
       tr.appendChild(rowHeader);
       for (let r = 0; r < resourceCount(); r += 1) {
