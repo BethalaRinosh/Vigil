@@ -171,7 +171,7 @@ The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, req
 
 ## Context review — Step 10
 
-**Context review done.** Added an accessible live toast region for scenario import/export outcomes, a chip-based safe completion sequence in the final safety verdict, and a subtle step-count pulse. Focus-visible outlines now cover common interactive controls, the JSON file picker is keyboard reachable despite its visually hidden input, and narrow-screen toast/sequence layouts are bounded. Existing panel transitions and reduced-motion support remain in place; new animations are explicitly disabled for reduced-motion users. Verification: all 26 algorithm, risk, policy, and scenario-JSON tests passed in an isolated JavaScript harness; all six JavaScript files passed syntax checks. Static checks found no duplicate HTML IDs, missing fixed DOM references, or dependency-order errors. The light-theme secondary text color now clears a 4.5:1 contrast ratio against the page background. Browser-only download/file-picker behavior and visual viewport checks still require a real browser.
+**Context review done.** Added an accessible live toast region for scenario import/export outcomes, a chip-based safe completion sequence in the final safety verdict, and a subtle step-count pulse. Focus-visible outlines now cover common interactive controls, the JSON file picker is keyboard reachable despite its visually hidden input, and narrow-screen toast/sequence layouts are bounded. Existing panel transitions and reduced-motion support remain in place; new animations are explicitly disabled for reduced-motion users. Verification: all 26 algorithm, risk, policy, and scenario-JSON tests passed in an isolated JavaScript harness; all six JavaScript files passed syntax checks. Static checks found no duplicate HTML IDs, missing fixed DOM references, or dependency-order errors. The light-theme secondary text color now clears a 4.5:1 contrast ratio against the page background. The user reported that the Step 10 browser checks passed. This audit did not independently automate a browser session, so those checks are user-confirmed rather than independently reproduced here.
 
 ## Context review — Step 9
 
@@ -219,7 +219,7 @@ The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, req
 - Added trial-count and seed controls, per-policy metrics, unsafe-state comparison, and a first-20-trials request ledger.
 - Scenario edits clear old results so stale comparison metrics are not mistaken for current data.
 - Added four tests for seeded determinism, identical request order, unsafe-grant contrast, input validation, and non-mutation.
-- Verification: all 23 tests passed in an isolated JavaScript harness; static syntax, DOM ID, tab/panel, script-order, and fixed-reference checks passed. Live browser checks for Step 8 are still required.
+- Milestone verification: the policy comparison's seeded workload, identical request ordering, unsafe-grant contrast, and input validation were covered by the then-current isolated test suite. The final current suite and manual browser pass are summarized in the Step 11 audit.
 
 ### Step 7 — Risk visualizations
 
@@ -227,7 +227,7 @@ The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, req
 - Process risk bars are selectable by mouse or keyboard and stay synchronized with the process-factor detail and process list.
 - Safe states show the full completion sequence; unsafe states show the partial sequence and blocked processes.
 - The charts use existing scenario and risk-analysis data, follow the light/dark theme, and require no chart dependency.
-- Verification: syntax and static repository checks are being repeated; browser rendering has not been manually verified.
+- Milestone verification: source syntax and static repository checks were used during implementation. The final audit distinguishes automated code checks from real-browser rendering and interaction checks.
 
 ### Step 6 — Heuristic risk engine and formulas
 
@@ -237,7 +237,7 @@ The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, req
 - Replaced the Risk intelligence placeholder with system metrics, selectable process details, contributing-factor bars, recommendations, and an expandable formula/weights explanation.
 - Added a what-if request lab that compares before/after risk and safety outcomes without committing changes.
 - Added five automated cases covering risk bounds, unsafe-state classification, sequence cap, granted what-if, and denied what-if immutability.
-- Verification: all 19 tests passed in an isolated JavaScript harness. Static file/ID/tab checks are being re-run; native Node and live-browser verification remain pending.
+- Milestone verification: risk scoring and what-if logic were tested in the isolated harness at that stage. The current regression suite also includes the later policy and scenario JSON cases.
 
 ### Step 5 — Resource request and release workflow
 
@@ -247,7 +247,7 @@ The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, req
 - Added current runtime Available, Allocation, and Need views, plus a newest-first, in-memory history with timestamps.
 - Kept transaction state separate from the setup scenario; granted requests and valid releases update only the runtime copy. Reset or setup changes clear the transaction history.
 - Added tests for unsafe tentative-grant immutability, waiting-request immutability, and release limits.
-- Health audit: static file/ID/tab checks passed. Fresh `node tests.js` and live-browser validation remain pending because outbound GitHub access is unavailable in this environment.
+- Health audit at this milestone: static file/ID/tab checks passed. The final regression suite is now runnable through `npm test`; browser-specific behavior remains a separate manual check.
 
 ## Change log
 
@@ -273,7 +273,7 @@ The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, req
 - Added responsive matrix scrolling and input-specific accessibility labels.
 - Kept all scenario state in memory without localStorage.
 - Health/bug audit: checked required HTML-to-JavaScript IDs, matching tab/panel keys, script/style paths, algorithm exports, and test coverage. Fixed stale cross-matrix process/resource labels after name edits and removed obsolete helpers.
-- Browser rendering and a fresh repository-clone test run could not be executed in this environment because outbound GitHub network access is unavailable; these remain manual verification items.
+- The final source and regression suite are now covered by repeatable npm commands and a CI workflow. Real-browser rendering and interactions are not simulated by the Node.js suite.
 
 
 ### Step 11 — Final documentation, viva, demo, and repository audit
@@ -284,4 +284,4 @@ The regression suite covers the textbook safe sequence `P1, P3, P4, P0, P2`, req
 - Added `docs/FINAL_AUDIT.md` to record verification scope, evidence, and browser-only checks that remain.
 - Added `package.json` commands for JavaScript syntax checks and regression tests, with no runtime dependencies; added `.gitignore` and GitHub Actions CI.
 - Fixed the safe-sequence enumerator's exact-cap boundary behavior and added a regression test.
-- Verification: current test suite contains 27 cases. Run `npm run check` locally; hosted CI must complete after the workflow commit. Browser rendering, keyboard-only use, and download/file-picker behavior still require a real browser.
+- Verification: the current suite contains 27 cases and passes in the isolated JavaScript harness used for this audit. Run `npm run check` locally to reproduce syntax and regression checks. The GitHub Actions workflow is committed, but its hosted run status could not be independently confirmed here. The user reported that the Step 10 browser checks passed; browser automation is not part of the Node.js suite.
