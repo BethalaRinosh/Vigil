@@ -80,4 +80,4 @@ This is a code and static-structure review, not a formal proof that the applicat
 
 ## Release judgment
 
-The repository is organized into pure algorithm modules, a UI controller, static presentation assets, regression tests, and project documentation. The available automated checks provide a repeatable baseline. Treat browser behavior as pending until the manual checklist above has been exercised on the target browser/device.
+The repository is organized into pure algorithm modules, a UI controller, static presentation assets, regression tests, CI configuration, and project documentation. The 27-case regression suite and syntax checks pass in the isolated harness used for this audit. The user reported that the Step 10 manual browser checklist passed; browser automation and the hosted CI result were not independently confirmed here. Additional cross-browser, screen-reader, and status-color contrast checks remain useful release-hardening work.
