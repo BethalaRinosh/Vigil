@@ -5,7 +5,7 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Steps 1–4 of 11 are complete. The pure algorithm layer, interactive scenario editor, and step-by-step safety trace are available.
+> **Current status:** Steps 1–5 of 11 are implemented. The pure algorithm layer, interactive scenario editor, safety trace, and resource transaction simulator are available.
 
 ## Progress checklist
 
@@ -13,7 +13,7 @@ Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser
 - [x] **Step 2:** Core Banker's algorithms and Node tests
 - [x] **Step 3:** Setup/input panel and validation
 - [x] **Step 4:** Step-by-step safety check
-- [ ] **Step 5:** Resource request and release workflow
+- [x] **Step 5:** Resource request and release workflow
 - [ ] **Step 6:** Heuristic risk engine and formulas
 - [ ] **Step 7:** Risk visualizations
 - [ ] **Step 8:** Banker's vs. naive policy comparison
@@ -45,11 +45,17 @@ Inter is loaded from Google Fonts when a network connection is available; system
 
 ## Project files
 
-- `index.html` — page structure, Vigil branding, navigation, scenario editor, and safety-check workspace.
-- `style.css` — theme variables, responsive layout, editable matrices, safety trace, live vectors, and reduced-motion handling.
-- `script.js` — navigation, theme interactions, in-memory scenario editor, validation, and step-by-step safety walkthrough.
+- `index.html` — page structure, navigation, scenario editor, safety trace, and resource transaction workspace.
+- `style.css` — responsive theme, editable matrices, safety trace, request/release forms, outcome states, and history timeline.
+- `script.js` — in-memory scenario editor, safety walkthrough, resource transaction state, validation, and action history.
 - `banker.js` — pure Need, safety, request, release, and state-validation functions.
-- `tests.js` — Node.js tests for textbook scenarios, request outcomes, unsafe state, releases, invalid inputs, and safety-trace invariants.
+- `tests.js` — Node.js tests for safety traces, request outcomes, transaction immutability, releases, and invalid inputs.
+
+## Step 5 resource requests and releases
+
+Open **Resource requests** to experiment with the current System setup. The request vector is checked by the pure `VigilBanker.requestResources()` API. Vigil reports **GRANTED**, **DENIED**, or **MUST WAIT** with the algorithm's reason. A request is only committed when the tentative state passes the safety check; denied and waiting requests leave the runtime state unchanged. The release workflow validates that a process cannot return more instances than its current Allocation, then updates Available and Allocation.
+
+The workspace shows the current runtime Available vector, Allocation matrix, and Need matrix, plus a newest-first action history with timestamps, vectors, outcomes, and reasons. **Reset to setup** restores the current System setup values and clears the history. Editing or loading a different setup scenario also starts a fresh transaction session. Transaction state and history are memory-only and are not persisted. The request simulator has its own runtime copy so experimenting does not silently overwrite the configured setup scenario.
 
 ## Step 4 safety walkthrough
 
@@ -83,9 +89,9 @@ The tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `
 - Vigil is an educational client-side simulation, not an operating-system resource manager.
 - Do not persist scenario state in localStorage.
 
-## Context review — Step 4
+## Context review — Step 5
 
-**Context review done.** Re-checked the full project requirements and all project files after Step 4. Vigil naming, vanilla HTML/CSS/JS structure, tab/panel wiring, pure algorithm layer, no-persistence requirement, and step ordering remain consistent. Step 4 adds an interactive trace that reads `VigilBanker.safetyCheck()`, a live Work vector, Finish flags, Need matrix, safe/unsafe verdicts, Auto play, Next step, and Reset. An edge case was fixed where the final unsafe verdict advanced beyond the trace array and could crash the Work/Finish renderer; final-state rendering now clamps to the last valid trace row. Tests were added for trace initialization, final Finish flags, and unsafe partial proofs. Static integrity checks and actual Node/browser execution still need to be performed in an environment with repository files and a browser available.
+**Context review done.** Re-checked all six project files after Step 5. The existing pure Banker API remains the single source of truth for request/release decisions. The new transaction workspace keeps a cloned runtime state separate from the configured setup, commits only granted requests, blocks invalid releases, displays Available/Allocation/Need after actions, and records an in-memory audit trail. Changing setup values resets the transaction session, and no browser storage is used. Static checks found no duplicate HTML IDs, missing fixed DOM references, tab/panel mismatches, or invalid in-panel navigation targets. Fresh-clone Node tests and browser/console checks remain unverified because GitHub network access is unavailable in the current execution environment.
 
 ### Step 4 — Step-by-step safety check
 
@@ -96,6 +102,16 @@ The tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `
 - Reset the trace when the scenario changes to avoid stale results.
 - Fixed final unsafe-state rendering to clamp vector reads to the last valid trace record.
 - Added two Node tests for safety trace invariants. Run `node tests.js` from the repository root.
+
+### Step 5 — Resource request and release workflow
+
+- Replaced the request placeholder with request and release forms that adapt to the current process/resource setup.
+- Routed requests through `VigilBanker.requestResources()` and releases through `VigilBanker.releaseResources()`.
+- Added GRANTED, DENIED, MUST WAIT, and RELEASED outcomes with plain-language explanations.
+- Added current runtime Available, Allocation, and Need views, plus a newest-first, in-memory history with timestamps.
+- Kept transaction state separate from the setup scenario; granted requests and valid releases update only the runtime copy. Reset or setup changes clear the transaction history.
+- Added tests for unsafe tentative-grant immutability, waiting-request immutability, and release limits.
+- Health audit: static file/ID/tab checks passed. Fresh `node tests.js` and live-browser validation remain pending because outbound GitHub access is unavailable in this environment.
 
 ## Change log
 
