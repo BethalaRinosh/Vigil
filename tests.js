@@ -102,4 +102,22 @@ test("invalid dimensions, negative values, and allocation above maximum are reje
   assert.throws(() => banker.safetyCheck({ allocation: [[2]], maximum: [[1]], available: [0] }), /exceeds/i);
 });
 
+
+test("safety trace begins with Available Work and all Finish flags false", () => {
+  const result = banker.safetyCheck(textbook);
+  assert.equal(result.trace[0].completedProcess, null);
+  assert.deepEqual(result.trace[0].work, textbook.available);
+  assert.deepEqual(result.trace[0].finish, [false, false, false, false, false]);
+  assert.equal(result.trace.length, textbook.allocation.length + 1);
+  assert.deepEqual(result.trace.at(-1).finish, [true, true, true, true, true]);
+});
+
+test("unsafe safety trace preserves its partial completion proof", () => {
+  const result = banker.safetyCheck(unsafe);
+  assert.equal(result.trace[0].completedProcess, null);
+  assert.equal(result.trace.at(-1).finish.every(Boolean), false);
+  assert.deepEqual(result.trace.at(-1).work, result.finalWork);
+  assert.deepEqual(result.stuckProcesses, [0, 1, 2]);
+});
+
 console.log("\nVigil algorithm tests passed.");
