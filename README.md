@@ -5,14 +5,14 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Steps 1–3 of 11 are complete. The pure algorithm layer, Node tests, and interactive scenario editor are available.
+> **Current status:** Steps 1–4 of 11 are complete. The pure algorithm layer, interactive scenario editor, and step-by-step safety trace are available.
 
 ## Progress checklist
 
 - [x] **Step 1:** Repo setup and scaffold
 - [x] **Step 2:** Core Banker's algorithms and Node tests
 - [x] **Step 3:** Setup/input panel and validation
-- [ ] **Step 4:** Step-by-step safety check
+- [x] **Step 4:** Step-by-step safety check
 - [ ] **Step 5:** Resource request and release workflow
 - [ ] **Step 6:** Heuristic risk engine and formulas
 - [ ] **Step 7:** Risk visualizations
@@ -45,11 +45,17 @@ Inter is loaded from Google Fonts when a network connection is available; system
 
 ## Project files
 
-- `index.html` — page structure, Vigil branding, navigation, and scenario editor markup.
-- `style.css` — theme variables, responsive layout, component styles, editable matrix styles, and reduced-motion handling.
-- `script.js` — navigation, theme interactions, in-memory scenario editor, matrix rendering, validation, and scenario presets.
+- `index.html` — page structure, Vigil branding, navigation, scenario editor, and safety-check workspace.
+- `style.css` — theme variables, responsive layout, editable matrices, safety trace, live vectors, and reduced-motion handling.
+- `script.js` — navigation, theme interactions, in-memory scenario editor, validation, and step-by-step safety walkthrough.
 - `banker.js` — pure Need, safety, request, release, and state-validation functions.
-- `tests.js` — Node.js tests for the textbook scenario, request outcomes, unsafe state, release, and invalid inputs.
+- `tests.js` — Node.js tests for textbook scenarios, request outcomes, unsafe state, releases, invalid inputs, and safety-trace invariants.
+
+## Step 4 safety walkthrough
+
+Open the **Safety check** tab after loading or editing a scenario in **System setup**. **Next step** advances the trace, **Auto play** advances at a readable pace and can be paused, and **Reset** returns to the initial state. The view shows the current Work vector, Finish flags, Need matrix, process completion order, and plain-English reasoning for each step. A safe state ends with the proven completion sequence and final Work vector. An unsafe state ends when no unfinished process has Need less than or equal to Work and names the processes that remain unfinished. Changing scenario inputs resets the walkthrough so the trace cannot silently refer to an old state.
+
+The safety trace is computed by the pure `VigilBanker.safetyCheck()` function from `banker.js`; the UI does not reimplement the algorithm. A safe state is not a guarantee that every future request will be safe, and an unsafe state does not necessarily mean the system is already deadlocked.
 
 ## Step 3 scenario editor
 
@@ -77,9 +83,19 @@ The tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1's `
 - Vigil is an educational client-side simulation, not an operating-system resource manager.
 - Do not persist scenario state in localStorage.
 
-## Context review — Step 3
+## Context review — Step 4
 
-**Context review done.** Re-checked the full project requirements, this README, and all six existing project files. Vigil naming, vanilla HTML/CSS/JS structure, tab/panel wiring, Step 2 algorithm/test contracts, no-persistence requirement, and step ordering remain consistent. The Step 3 review found stale process/resource labels across sibling matrices after a name edit and two obsolete helper functions; the label synchronization was fixed by re-rendering after a committed name change, and the unused helpers were removed. Static integrity checks found no duplicate HTML IDs, no JavaScript references to missing fixed DOM IDs, and no tab/panel mismatch. A real browser check and fresh `node tests.js` run from a repository clone remain unverified because outbound GitHub network access is unavailable in the current execution environment.
+**Context review done.** Re-checked the full project requirements and all project files after Step 4. Vigil naming, vanilla HTML/CSS/JS structure, tab/panel wiring, pure algorithm layer, no-persistence requirement, and step ordering remain consistent. Step 4 adds an interactive trace that reads `VigilBanker.safetyCheck()`, a live Work vector, Finish flags, Need matrix, safe/unsafe verdicts, Auto play, Next step, and Reset. An edge case was fixed where the final unsafe verdict advanced beyond the trace array and could crash the Work/Finish renderer; final-state rendering now clamps to the last valid trace row. Tests were added for trace initialization, final Finish flags, and unsafe partial proofs. Static integrity checks and actual Node/browser execution still need to be performed in an environment with repository files and a browser available.
+
+### Step 4 — Step-by-step safety check
+
+- Replaced the Safety check placeholder with a step-by-step algorithm trace.
+- Added Next step, Auto play / Pause, and Reset controls.
+- Added live Work and Finish vectors, Need matrix, current-process highlight, and plain-English explanations.
+- Added final SAFE / UNSAFE verdicts, safe sequence, final Work vector, and stuck-process list.
+- Reset the trace when the scenario changes to avoid stale results.
+- Fixed final unsafe-state rendering to clamp vector reads to the last valid trace record.
+- Added two Node tests for safety trace invariants. Run `node tests.js` from the repository root.
 
 ## Change log
 
