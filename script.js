@@ -434,6 +434,7 @@
     const fill = $("safety-progress-fill");
     const stepCount = $("safety-step-count");
     const nextButton = $("safety-next");
+    const autoButton = $("safety-auto");
     const explanation = $("safety-explanation");
     const scenarioName = $("safety-scenario-name");
     const meta = $("safety-scenario-meta");
@@ -446,12 +447,14 @@
       fill.style.width = "0%";
       stepCount.textContent = "Step 0";
       nextButton.disabled = true;
+      if (autoButton) autoButton.disabled = true;
       explanation.querySelector("strong").textContent = "Cannot start yet";
       explanation.querySelector("p").textContent = currentErrors[0] || "Correct the invalid values in the setup panel.";
       paintSafetyState();
       return;
     }
     nextButton.disabled = false;
+    if (autoButton) autoButton.disabled = false;
     const trace = safetyResult.trace;
     const displayedIndex = Math.min(safetyCursor, trace.length - 1);
     stepCount.textContent = safetyCursor < 0 ? "Step 0" : "Step " + (safetyCursor + 1);
