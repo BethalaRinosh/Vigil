@@ -190,6 +190,7 @@
         scenario.available[r] = parsed;
         field.classList.toggle("input-invalid", !Number.isInteger(parsed) || parsed < 0);
         validateAndPaint();
+        syncRequestSession();
         resetSafety();
       });
       item.append(name, input);
