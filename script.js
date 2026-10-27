@@ -457,6 +457,91 @@
 
   $("policy-run")?.addEventListener("click", renderPolicyComparison);
 
+  // Step 9: validated, versioned scenario JSON import/export.
+  function setScenarioJsonStatus(message, state = "info") {
+    const host = $("scenario-json-status");
+    if (!host) return;
+    host.textContent = message;
+    host.className = "scenario-json-status scenario-json-" + state;
+  }
+  function currentScenarioForExport() {
+    return {
+      allocation: scenario.allocation.map((row) => row.slice()),
+      maximum: scenario.maximum.map((row) => row.slice()),
+      available: scenario.available.slice(),
+      processNames: scenario.processNames.slice(),
+      resourceNames: scenario.resourceNames.slice()
+    };
+  }
+  function showCurrentScenarioJson() {
+    try {
+      $("scenario-json").value = window.VigilScenarioIO.stringifyScenario(currentScenarioForExport());
+      setScenarioJsonStatus("Current scenario serialized as Vigil JSON version " + window.VigilScenarioIO.VERSION + ". You can review it, copy it, or download it.", "success");
+    } catch (error) {
+      setScenarioJsonStatus("Could not serialize this setup: " + (error.message || "invalid scenario"), "error");
+    }
+  }
+  function downloadCurrentScenarioJson() {
+    try {
+      const json = window.VigilScenarioIO.stringifyScenario(currentScenarioForExport());
+      const blob = new Blob([json + "\n"], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "vigil-scenario.json";
+      link.hidden = true;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      $("scenario-json").value = json;
+      setScenarioJsonStatus("Scenario exported. The JSON editor contains the same versioned document.", "success");
+    } catch (error) {
+      setScenarioJsonStatus("Export failed: " + (error.message || "unable to create JSON file"), "error");
+    }
+  }
+  function importScenarioJson(source) {
+    try {
+      const parsed = window.VigilScenarioIO.parseScenario(source);
+      // Validation finishes before loadScenario, so malformed input cannot
+      // partially overwrite the user's current configuration.
+      loadScenario(parsed);
+      syncRequestSession(true);
+      $("scenario-json").value = window.VigilScenarioIO.stringifyScenario(parsed);
+      setScenarioJsonStatus("Scenario loaded successfully: " + parsed.processNames.length + " processes and " + parsed.resourceNames.length + " resource types. Safety trace and request session reset.", "success");
+      return true;
+    } catch (error) {
+      setScenarioJsonStatus(error.message || "Could not import this scenario.", "error");
+      return false;
+    }
+  }
+  $("scenario-fill-json")?.addEventListener("click", showCurrentScenarioJson);
+  $("scenario-export")?.addEventListener("click", downloadCurrentScenarioJson);
+  $("scenario-import")?.addEventListener("click", () => importScenarioJson($("scenario-json").value));
+  $("scenario-clear-json")?.addEventListener("click", () => {
+    $("scenario-json").value = "";
+    setScenarioJsonStatus("JSON editor cleared. The current System setup has not changed.", "info");
+  });
+  $("scenario-file")?.addEventListener("change", async (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    if (file.size > 1024 * 1024) {
+      setScenarioJsonStatus("File is too large. Scenario JSON must be 1 MB or smaller.", "error");
+      event.target.value = "";
+      return;
+    }
+    try {
+      const source = await file.text();
+      $("scenario-json").value = source;
+      importScenarioJson(source);
+    } catch (error) {
+      setScenarioJsonStatus("Could not read the selected file: " + (error.message || "file read failed"), "error");
+    } finally {
+      event.target.value = "";
+    }
+  });
+
+
   document.querySelectorAll("[data-count]").forEach((button) => button.addEventListener("click", () => {
     const input = $(button.dataset.count === "process" ? "process-count" : "resource-count");
     resizeScenario(button.dataset.count, Number(input.value) + Number(button.dataset.delta));
