@@ -76,6 +76,9 @@
   };
   let scenario = cloneScenario(DEFAULT_TEXTBOOK);
   let currentErrors = [];
+  let requestState = null;
+  let requestHistory = [];
+  let requestScenarioSnapshot = "";
 
   function cloneScenario(source) {
     return {
@@ -223,6 +226,7 @@
     }
     table.appendChild(tbody); host.appendChild(table);
     validateAndPaint();
+    syncRequestSession();
     if (typeof resetSafety === "function") resetSafety();
   }
 
@@ -342,6 +346,224 @@
     }
   });
 
+
+
+  // Step 5: isolated runtime state for request/release experiments.
+  function requestSnapshot() {
+    return JSON.stringify({
+      allocation: scenario.allocation,
+      maximum: scenario.maximum,
+      available: scenario.available,
+      processNames: scenario.processNames,
+      resourceNames: scenario.resourceNames
+    });
+  }
+  function syncRequestSession(force = false) {
+    const snapshot = requestSnapshot();
+    if (!force && snapshot === requestScenarioSnapshot) return;
+    requestScenarioSnapshot = snapshot;
+    currentErrors = collectErrors();
+    requestState = currentErrors.length ? null : window.VigilBanker.cloneState(scenario);
+    requestHistory = [];
+    renderRequestWorkspace();
+  }
+  function appendRequestVectorInputs(hostId, prefix) {
+    const host = $(hostId);
+    if (!host) return;
+    host.replaceChildren();
+    scenario.resourceNames.forEach((name, r) => {
+      const label = document.createElement("label");
+      label.className = "request-resource-field";
+      const title = makeCell("span", "request-resource-name", name);
+      const input = document.createElement("input");
+      input.type = "number";
+      input.min = "0";
+      input.step = "1";
+      input.inputMode = "numeric";
+      input.value = "0";
+      input.id = prefix + "-value-" + r;
+      input.className = "request-number-input";
+      input.setAttribute("aria-label", prefix + " quantity for " + name);
+      label.append(title, input);
+      host.appendChild(label);
+    });
+  }
+  function renderProcessSelect(id, selected) {
+    const select = $(id);
+    if (!select) return;
+    const previous = selected ?? select.value;
+    select.replaceChildren();
+    scenario.processNames.forEach((name, p) => {
+      const option = document.createElement("option");
+      option.value = String(p);
+      option.textContent = name;
+      select.appendChild(option);
+    });
+    select.value = scenario.processNames[Number(previous)] !== undefined ? previous : "0";
+  }
+  function renderRequestInputs() {
+    renderProcessSelect("request-process");
+    renderProcessSelect("release-process");
+    appendRequestVectorInputs("request-vector-inputs", "request");
+    appendRequestVectorInputs("release-vector-inputs", "release");
+  }
+  function renderRuntimeMatrix(hostId, matrix) {
+    const host = $(hostId);
+    if (!host) return;
+    host.replaceChildren();
+    if (!requestState) {
+      host.appendChild(makeCell("p", "request-state-empty", "Correct the setup inputs to initialize the runtime state."));
+      return;
+    }
+    const table = document.createElement("table");
+    table.className = "data-matrix";
+    const head = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    headerRow.appendChild(makeCell("th", "process-heading", "PROCESS"));
+    scenario.resourceNames.forEach((name) => headerRow.appendChild(makeCell("th", "", name)));
+    head.appendChild(headerRow);
+    table.appendChild(head);
+    const body = document.createElement("tbody");
+    matrix.forEach((row, p) => {
+      const tr = document.createElement("tr");
+      tr.appendChild(makeCell("th", "row-heading", scenario.processNames[p]));
+      row.forEach((value) => tr.appendChild(makeCell("td", "derived-value", String(value))));
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    host.appendChild(table);
+  }
+  function renderRequestHistory() {
+    const host = $("request-history-list");
+    if (!host) return;
+    host.replaceChildren();
+    $("request-history-count").textContent = requestHistory.length + (requestHistory.length === 1 ? " EVENT" : " EVENTS");
+    if (!requestHistory.length) {
+      host.appendChild(makeCell("div", "history-empty", "No actions yet. Submit a request or release to begin the timeline."));
+      return;
+    }
+    requestHistory.slice().reverse().forEach((entry) => {
+      const row = document.createElement("article");
+      row.className = "history-entry";
+      const icon = makeCell("span", "history-entry-icon", entry.type === "REQUEST" ? "↗" : "↙");
+      const body = document.createElement("div");
+      body.className = "history-entry-body";
+      const titleLine = document.createElement("div");
+      titleLine.className = "history-title-line";
+      titleLine.append(makeCell("strong", "", entry.type + " · " + entry.process), makeCell("span", "history-time", entry.time));
+      const detail = makeCell("p", "history-detail", entry.vectorLabel + " (" + entry.vector.join(", ") + ") · " + entry.reason);
+      body.append(titleLine, detail);
+      const status = makeCell("span", "history-status status-" + entry.statusClass, entry.status);
+      row.append(icon, body, status);
+      host.appendChild(row);
+    });
+  }
+  function renderRequestOutcome(kind, title, message, kicker) {
+    const host = $("request-outcome");
+    if (!host) return;
+    host.className = "request-outcome " + kind;
+    host.querySelector(".outcome-icon").textContent = kind === "is-granted" ? "✓" : kind === "is-denied" ? "!" : kind === "is-wait" ? "Ⅱ" : kind === "is-released" ? "↙" : "◷";
+    host.querySelector(".outcome-kicker").textContent = kicker;
+    host.querySelector("h2").textContent = title;
+    host.querySelector("p").textContent = message;
+  }
+  function renderRequestWorkspace() {
+    if (!$("request-process")) return;
+    renderRequestInputs();
+    $("request-session-title").textContent = "Current setup scenario";
+    $("request-session-meta").textContent = processCount() + " processes · " + resourceCount() + " resource types";
+    const disabled = !requestState;
+    ["submit-request", "submit-release"].forEach((id) => { $(id).disabled = disabled; });
+    const availableHost = $("request-available-state");
+    availableHost.replaceChildren();
+    if (!requestState) {
+      availableHost.appendChild(makeCell("p", "request-state-empty", "Unavailable until setup values are valid."));
+      renderRuntimeMatrix("request-allocation-state", []);
+      renderRuntimeMatrix("request-need-state", []);
+    } else {
+      scenario.resourceNames.forEach((name, r) => availableHost.appendChild(makeVectorChip(name, requestState.available[r], "work-chip")));
+      renderRuntimeMatrix("request-allocation-state", requestState.allocation);
+      let need = [];
+      try { need = window.VigilBanker.calculateNeed(requestState.allocation, requestState.maximum); } catch (_) {}
+      renderRuntimeMatrix("request-need-state", need);
+    }
+    renderRequestHistory();
+  }
+  function readActionVector(prefix) {
+    const values = [];
+    for (let r = 0; r < resourceCount(); r += 1) {
+      const input = $(prefix + "-value-" + r);
+      const raw = input?.value ?? "";
+      const value = raw.trim() === "" ? NaN : Number(raw);
+      if (!Number.isInteger(value) || value < 0) {
+        throw new TypeError("Enter a non-negative whole number for " + scenario.resourceNames[r] + ".");
+      }
+      values.push(value);
+    }
+    return values;
+  }
+  function recordRequestAction(type, processIndex, vector, status, reason, statusClass) {
+    requestHistory.push({
+      type,
+      process: scenario.processNames[processIndex],
+      vector: vector.slice(),
+      vectorLabel: type === "REQUEST" ? "Requested" : "Released",
+      status,
+      reason,
+      statusClass,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    });
+  }
+  function submitResourceRequest() {
+    if (!requestState) {
+      renderRequestOutcome("is-error", "Setup is invalid", "Correct the scenario inputs before submitting a request.", "INPUT VALIDATION");
+      return;
+    }
+    try {
+      const p = Number($("request-process").value);
+      const request = readActionVector("request");
+      const result = window.VigilBanker.requestResources(requestState, p, request);
+      const statusClass = result.status === "GRANTED" ? "granted" : result.status === "MUST WAIT" ? "wait" : "denied";
+      recordRequestAction("REQUEST", p, request, result.status, result.reason, statusClass);
+      if (result.granted) {
+        requestState = window.VigilBanker.cloneState(result.state);
+        renderRequestOutcome("is-granted", "Request granted", result.reason + " Resulting state is safe. Available is now (" + requestState.available.join(", ") + ").", "SAFE GRANT");
+      } else if (result.status === "MUST WAIT") {
+        renderRequestOutcome("is-wait", "Request must wait", result.reason + " No resources were changed.", "WAIT · STATE UNCHANGED");
+      } else {
+        renderRequestOutcome("is-denied", "Request denied", result.reason + " No resources were changed.", "DENIED · STATE UNCHANGED");
+      }
+      renderRequestWorkspace();
+      for (let r = 0; r < resourceCount(); r += 1) $("request-value-" + r).value = "0";
+    } catch (error) {
+      renderRequestOutcome("is-error", "Request not submitted", error.message || "Check the request values and try again.", "INPUT ERROR");
+    }
+  }
+  function submitResourceRelease() {
+    if (!requestState) {
+      renderRequestOutcome("is-error", "Setup is invalid", "Correct the scenario inputs before releasing resources.", "INPUT VALIDATION");
+      return;
+    }
+    try {
+      const p = Number($("release-process").value);
+      const release = readActionVector("release");
+      const result = window.VigilBanker.releaseResources(requestState, p, release);
+      requestState = window.VigilBanker.cloneState(result.state);
+      const safetyNote = result.safety.safe ? " The resulting state is safe." : " Note: the resulting state remains unsafe; remaining processes " + result.safety.stuckProcesses.map((index) => scenario.processNames[index]).join(", ") + " cannot currently be proven to finish.";
+      recordRequestAction("RELEASE", p, release, "RELEASED", "Resources returned to Available." + safetyNote, "released");
+      renderRequestOutcome("is-released", "Resources released", "Released (" + release.join(", ") + ") from " + scenario.processNames[p] + ". Available is now (" + requestState.available.join(", ") + ")." + safetyNote, "STATE UPDATED");
+      renderRequestWorkspace();
+      for (let r = 0; r < resourceCount(); r += 1) $("release-value-" + r).value = "0";
+    } catch (error) {
+      renderRequestOutcome("is-error", "Release not applied", error.message || "Check the release values and try again.", "INPUT ERROR");
+    }
+  }
+  $("submit-request").addEventListener("click", submitResourceRequest);
+  $("submit-release").addEventListener("click", submitResourceRelease);
+  $("request-reset").addEventListener("click", () => {
+    syncRequestSession(true);
+    renderRequestOutcome("is-idle", "Runtime state reset", "The request simulator has been restored to the current System setup values. Its history has been cleared.", "SESSION RESET");
+  });
 
   // Step 4: interactive, deterministic walkthrough of the Banker's safety proof.
   let safetyResult = null;
