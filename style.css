@@ -198,3 +198,73 @@
 .status-wait{border-color:rgba(229,185,108,.3);background:var(--amber-soft);color:var(--amber)}
 @media(max-width:1000px){.request-state-grid{grid-template-columns:1fr 1fr}.request-state-grid .request-state-card:last-child{grid-column:1/-1}}
 @media(max-width:700px){.request-session-bar{align-items:flex-start;flex-direction:column}.request-session-bar .button{width:100%}.request-workspace{grid-template-columns:1fr}.request-state-grid{grid-template-columns:1fr}.request-state-grid .request-state-card:last-child{grid-column:auto}.history-entry{flex-wrap:wrap}.history-status{margin-left:40px}}
+
+/* Vigil Step 6: explainable heuristic risk analysis. */
+.risk-header{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px;padding:14px 16px}
+.risk-header>div{display:grid;gap:3px}
+.risk-header strong{font-size:12px}
+.risk-header small{color:var(--subtle);font-size:10px}
+.risk-header .button{min-height:34px;font-size:10px}
+.risk-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.risk-metric{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:7px;padding:16px}
+.risk-metric-label{color:var(--subtle);font-size:8px;font-weight:800;letter-spacing:.12em}
+.risk-metric>strong{font-size:27px;font-weight:750;letter-spacing:-.04em;line-height:1.1;font-variant-numeric:tabular-nums}
+.risk-metric small{color:var(--subtle);font-size:9px;line-height:1.6}
+.risk-level-badge{display:inline-flex;align-items:center;justify-content:center;width:max-content;max-width:100%;padding:4px 7px;border:1px solid var(--border);border-radius:6px;background:var(--surface-raised);color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.03em;white-space:nowrap}
+.risk-low{border-color:rgba(107,213,170,.3);background:var(--green-soft);color:var(--green)}
+.risk-medium{border-color:rgba(229,185,108,.3);background:var(--amber-soft);color:var(--amber)}
+.risk-high{border-color:rgba(251,127,131,.25);background:rgba(251,127,131,.08);color:var(--red)}
+.risk-critical{border-color:rgba(251,127,131,.45);background:rgba(251,127,131,.13);color:var(--red)}
+.risk-main-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:14px;margin-bottom:14px}
+.risk-process-card,.risk-advice-card,.risk-whatif-card{min-width:0;padding:17px}
+.risk-process-list{display:grid;gap:5px;margin:13px 0}
+.risk-process-row{display:grid;grid-template-columns:minmax(45px,.5fr) minmax(70px,1fr) 28px auto;align-items:center;gap:9px;width:100%;min-height:42px;padding:7px 8px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--text);cursor:pointer;text-align:left}
+.risk-process-row:hover{background:var(--surface-hover)}
+.risk-process-row.is-selected{border-color:var(--border-strong);background:var(--surface-raised)}
+.risk-process-name{overflow:hidden;font-size:10px;font-weight:700;text-overflow:ellipsis}
+.risk-process-score{text-align:right;font-size:11px;font-variant-numeric:tabular-nums}
+.risk-process-mini-track,.risk-factor-track{display:block;overflow:hidden;height:5px;border-radius:99px;background:var(--border)}
+.risk-process-mini-fill,.risk-factor-fill{display:block;height:100%;border-radius:99px;transition:width .2s ease}
+.risk-fill-low{background:var(--green)}
+.risk-fill-medium{background:var(--amber)}
+.risk-fill-high{background:var(--red)}
+.risk-process-detail{display:grid;gap:12px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface-raised)}
+.risk-detail-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.risk-detail-heading strong{font-size:12px}
+.risk-detail-factor{display:grid;gap:6px}
+.risk-factor-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.risk-factor-top strong{font-size:10px}
+.risk-factor-top span{color:var(--muted);font-size:9px;font-variant-numeric:tabular-nums}
+.risk-detail-factor p{margin:0;color:var(--subtle);font-size:9px;line-height:1.6}
+.risk-safety-status{margin:13px 0;padding:10px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface-raised);color:var(--muted);font-size:9px;font-weight:800;line-height:1.7;overflow-wrap:anywhere}
+.risk-safe{border-color:rgba(107,213,170,.3);background:var(--green-soft);color:var(--green)}
+.risk-unsafe{border-color:rgba(251,127,131,.35);background:rgba(251,127,131,.08);color:var(--red)}
+.risk-recommendation{margin:0 0 16px;color:var(--muted);font-size:11px;line-height:1.8}
+.risk-factor-bars{display:grid;gap:13px;padding-top:14px;border-top:1px solid var(--border)}
+.risk-factor-row{display:grid;gap:7px}
+.risk-formulas{margin-top:17px;border-top:1px solid var(--border);padding-top:12px}
+.risk-formulas summary{color:var(--accent);font-size:10px;font-weight:750;cursor:pointer}
+.risk-formula-content{padding-top:10px;color:var(--muted);font-size:10px;line-height:1.8}
+.risk-formula-content h3{margin:12px 0 5px;color:var(--text);font-size:11px}
+.risk-formula-content p{margin:5px 0}
+.risk-formula-content ul{padding-left:18px}
+.risk-formula-content li{margin:5px 0}
+.risk-formula-content code{padding:2px 4px;border-radius:4px;background:var(--surface-raised);color:var(--text);font-size:9px;white-space:normal}
+.risk-whatif-card{margin-bottom:14px}
+.risk-whatif-form{max-width:700px;margin-top:14px}
+.risk-whatif-form>.button{margin-top:14px}
+.risk-whatif-result{display:grid;gap:12px;margin-top:16px;padding-top:15px;border-top:1px solid var(--border)}
+.whatif-empty{padding:16px;border:1px dashed var(--border-strong);border-radius:9px;color:var(--subtle);font-size:10px;text-align:center}
+.whatif-outcome-head{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.whatif-outcome-head strong{font-size:11px}
+.whatif-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.whatif-score-card{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:7px;padding:13px;border:1px solid var(--border);border-radius:9px;background:var(--surface-raised)}
+.whatif-score-card>strong{font-size:24px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.whatif-score-card small{color:var(--subtle);font-size:9px;line-height:1.6}
+.whatif-delta{margin:0;color:var(--text);font-size:10px;font-weight:750}
+.whatif-reason,.whatif-recommendation,.whatif-note,.whatif-error{margin:0;color:var(--muted);font-size:10px;line-height:1.8;overflow-wrap:anywhere}
+.whatif-recommendation{padding:11px;border-left:2px solid var(--accent);background:var(--accent-soft)}
+.whatif-note{color:var(--subtle)}
+.whatif-error{color:var(--red)}
+@media(max-width:1100px){.risk-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.risk-main-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.risk-header{align-items:flex-start;flex-direction:column}.risk-header .button{width:100%}.risk-summary-grid{gap:8px}.risk-metric{padding:12px}.risk-metric>strong{font-size:23px}.risk-process-row{grid-template-columns:42px minmax(55px,1fr) 24px auto;gap:6px;padding:6px}.risk-process-row .risk-level-badge{font-size:7px;padding:4px}.whatif-comparison{grid-template-columns:1fr 1fr}}
