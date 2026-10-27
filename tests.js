@@ -233,4 +233,8 @@ test("scenario JSON round-trips the textbook scenario", () => {
   assert.equal(JSON.parse(json).format, "vigil-scenario");
   assert.equal(JSON.parse(json).version, 1);
 });
+test("scenario JSON rejects invalid format and unsupported versions", () => {
+  assert.throws(() => scenarioIO.parseScenario({ format: "other", version: 1, scenario: {} }), /format/i);
+  assert.throws(() => scenarioIO.parseScenario({ format: "vigil-scenario", version: 99, scenario: {} }), /version/i);
+});
 console.log("\nVigil algorithm, risk, and policy tests passed.");
