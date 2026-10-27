@@ -237,4 +237,9 @@ test("scenario JSON rejects invalid format and unsupported versions", () => {
   assert.throws(() => scenarioIO.parseScenario({ format: "other", version: 1, scenario: {} }), /format/i);
   assert.throws(() => scenarioIO.parseScenario({ format: "vigil-scenario", version: 99, scenario: {} }), /version/i);
 });
+test("scenario JSON rejects malformed JSON and invalid resource values", () => {
+  assert.throws(() => scenarioIO.parseScenario("{"), /Invalid JSON/i);
+  const source = scenarioIO.serializeScenario({ ...textbook, processNames: ["P0", "P1", "P2", "P3", "P4"], resourceNames: ["A", "B", "C"] });
+  assert.throws(() => scenarioIO.parseScenario({ ...source, scenario: { ...source.scenario, available: [3, -1, 2] } }), /Available/i);
+});
 console.log("\nVigil algorithm, risk, and policy tests passed.");
