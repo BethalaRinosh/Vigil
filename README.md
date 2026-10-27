@@ -75,7 +75,7 @@ The **Risk intelligence** workspace evaluates the current configured scenario wi
 - A state that fails the formal safety check is always classified as **Critical**, regardless of its weighted score.
 - The distinct-sequence enumerator stops at 1,000 sequences to bound computation. The UI displays `≥1,000` when that cap is reached; the score uses the capped count.
 
-The minimum slack is the smallest `Work[r] - Need[p][r]` margin along the deterministic safe proof. For an unsafe state, it is the best available margin among blocked processes at the point the safety scan stops, which is negative when no blocked process fits Work.
+The minimum slack is the smallest `Work[r] - Need[p][r]` margin along the deterministic safe proof. For an unsafe state, it is the most negative per-process minimum margin among blocked processes at the point the safety scan stops, so a negative value signals that the safety scan cannot find a process whose Need fits Work.
 
 ### What-if analysis
 
