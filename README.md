@@ -15,7 +15,6 @@ Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser
 - [x] **Step 4:** Step-by-step safety check
 - [x] **Step 5:** Resource request and release workflow
 - [x] **Step 6:** Heuristic risk engine and formulas
-- [ ] **Step 7:** Policy comparison (not started)
 - [ ] **Step 7:** Risk visualizations
 - [ ] **Step 8:** Banker's vs. naive policy comparison
 - [ ] **Step 9:** Learning guide and JSON scenario import/export
@@ -27,7 +26,7 @@ Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser
 - Responsive dark/light theme shell with Vigil branding.
 - Seven navigation tabs: Overview, System setup, Safety check, Requests, Risk intelligence, Policy comparison, and Learn & export.
 - Keyboard navigation for tabs and theme shortcuts (D for dark, L for light).
-- Placeholder panels identifying which later step will implement each workspace.
+- Remaining placeholder panels identify which later step will implement each unfinished workspace.
 - Reduced-motion CSS support and responsive layouts.
 - No framework, build step, localStorage, or runtime dependency for the scaffold.
 
@@ -42,14 +41,15 @@ No install or build process is required.
 3. Use the left navigation to move between workspace sections.
 4. Use **Toggle appearance** to switch between dark and light themes.
 
-Inter is loaded from Google Fonts when a network connection is available; system fonts are used as fallback. Chart.js is planned for Step 7 and is not required by this scaffold.
+Inter is loaded from Google Fonts when a network connection is available; system fonts are used as fallback. Chart.js may be introduced for Step 7 risk visualizations; it is not required by the current implementation.
 
 ## Project files
 
-- `index.html` — page structure, navigation, scenario editor, safety trace, and resource transaction workspace.
+- `index.html` — page structure, navigation, scenario editor, safety trace, request/release workspace, and risk intelligence UI.
 - `style.css` — responsive theme, editable matrices, safety trace, request/release forms, outcome states, and history timeline.
-- `script.js` — in-memory scenario editor, safety walkthrough, resource transaction state, validation, and action history.
+- `script.js` — in-memory scenario editor, safety walkthrough, request/release workflow, risk UI, what-if comparisons, and validation.
 - `banker.js` — pure Need, safety, request, release, and state-validation functions.
+- `risk.js` — pure heuristic risk scoring, bounded safe-sequence enumeration, and what-if analysis.
 - `tests.js` — Node.js tests for safety traces, request outcomes, transaction immutability, releases, and invalid inputs.
 
 ## Step 6 heuristic risk analysis
