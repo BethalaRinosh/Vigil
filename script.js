@@ -528,11 +528,13 @@
       recordRequestAction("REQUEST", p, request, result.status, result.reason, statusClass);
       if (result.granted) {
         requestState = window.VigilBanker.cloneState(result.state);
-        renderRequestOutcome("is-granted", "Request granted", result.reason + " Resulting state is safe. Available is now (" + requestState.available.join(", ") + ").", "SAFE GRANT");
+        const sequence = result.safety.safeSequence.map((index) => scenario.processNames[index]).join(" → ");
+        renderRequestOutcome("is-granted", "Request granted", result.reason + " Resulting state is safe. Safe sequence: " + sequence + ". Available is now (" + requestState.available.join(", ") + ").", "SAFE GRANT");
       } else if (result.status === "MUST WAIT") {
         renderRequestOutcome("is-wait", "Request must wait", result.reason + " No resources were changed.", "WAIT · STATE UNCHANGED");
       } else {
-        renderRequestOutcome("is-denied", "Request denied", result.reason + " No resources were changed.", "DENIED · STATE UNCHANGED");
+        const safetyDetail = result.safety && !result.safety.safe ? " The tentative state cannot prove completion for: " + result.safety.stuckProcesses.map((index) => scenario.processNames[index]).join(", ") + "." : "";
+        renderRequestOutcome("is-denied", "Request denied", result.reason + safetyDetail + " No resources were changed.", "DENIED · STATE UNCHANGED");
       }
       renderRequestWorkspace();
       for (let r = 0; r < resourceCount(); r += 1) $("request-value-" + r).value = "0";
