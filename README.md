@@ -5,7 +5,7 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Steps 1–6 of 11 are implemented. Vigil now includes a transparent heuristic risk engine alongside the formal Banker's safety check.
+> **Current status:** Steps 1–7 of 11 are implemented. Vigil includes transparent heuristic risk analysis with interactive resource, process-score, and completion-path visualizations.
 
 ## Progress checklist
 
@@ -15,7 +15,8 @@ Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser
 - [x] **Step 4:** Step-by-step safety check
 - [x] **Step 5:** Resource request and release workflow
 - [x] **Step 6:** Heuristic risk engine and formulas
-- [ ] **Step 7:** Risk visualizations
+- [x] **Step 7:** Risk visualizations
+- [ ] **Step 8:** Banker's vs. naive policy comparison
 - [ ] **Step 8:** Banker's vs. naive policy comparison
 - [ ] **Step 9:** Learning guide and JSON scenario import/export
 - [ ] **Step 10:** UI polish, animation, accessibility, and responsiveness review
@@ -45,12 +46,22 @@ Inter is loaded from Google Fonts when a network connection is available; system
 
 ## Project files
 
-- `index.html` — page structure, navigation, scenario editor, safety trace, request/release workspace, and risk intelligence UI.
-- `style.css` — responsive theme, editable matrices, safety trace, request/release forms, outcome states, and history timeline.
-- `script.js` — in-memory scenario editor, safety walkthrough, request/release workflow, risk UI, what-if comparisons, and validation.
+- `index.html` — page structure, navigation, scenario editor, safety trace, request/release workspace, and risk intelligence visualizations.
+- `style.css` — responsive theme, editable matrices, safety trace, request/release forms, risk cards, SVG chart styles, and history timeline.
+- `script.js` — in-memory scenario editor, safety walkthrough, request/release workflow, risk UI, interactive SVG charts, what-if comparisons, and validation.
 - `banker.js` — pure Need, safety, request, release, and state-validation functions.
 - `risk.js` — pure heuristic risk scoring, bounded safe-sequence enumeration, and what-if analysis.
 - `tests.js` — Node.js tests for safety traces, request outcomes, transaction immutability, releases, and invalid inputs.
+
+## Step 7 risk visualizations
+
+The Risk Intelligence workspace includes three visual summaries rendered as native SVG and HTML, with no chart-library dependency:
+
+- **Allocated vs. available:** resource-by-resource stacked bars show allocated instances compared with instances still Available. Each resource uses the same scale within the chart, with numeric counts alongside the bars.
+- **Process risk profile:** a 0–100 bar chart compares each process's heuristic score. Bars are keyboard-focusable and selectable; choosing a bar updates the process-factor detail and corresponding process-list selection.
+- **Completion pathway:** process nodes visualize the deterministic safety proof. A safe state shows the complete sequence; an unsafe state shows the partial completion sequence followed by blocked processes. The badge explicitly marks SAFE or UNSAFE.
+
+The charts redraw from the current scenario and heuristic assessment. They use the existing `VigilBanker` safety result and `VigilRisk` assessment rather than calculating their own safety verdicts. The charts are responsive, use the current light/dark theme variables, and expose accessible labels and keyboard interaction for process selection. No external chart package, build step, or browser storage was added.
 
 ## Step 6 heuristic risk analysis
 
@@ -121,6 +132,10 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Vigil is an educational client-side simulation, not an operating-system resource manager.
 - Do not persist scenario state in localStorage.
 
+## Context review — Step 7
+
+**Context review done.** Re-checked the seven repository files after adding the visualizations. The risk charts are based on the same scenario and risk assessment used by Step 6: allocated/available counts come from the scenario vectors, process bars use existing process scores, and the pathway uses the formal safety result's complete or partial sequence. Process chart selection updates the existing process detail view, including keyboard activation. SVG nodes are created with DOM APIs and text is inserted as text, not raw HTML. Static checks confirm chart containers and fixed DOM references exist, scripts load in dependency order, tabs match panels, and no duplicate IDs were introduced. The 19 algorithm/risk tests passed previously in an isolated JavaScript harness; this turn's latest full suite and live browser rendering still require verification.
+
 ## Context review — Step 6
 
 **Context review done.** Re-checked the six existing files and the new `risk.js` module against the project constraints. Step 6 is explicitly labeled heuristic risk analysis, not machine learning. The scoring inputs and weights are exposed in the UI; the formal Banker API remains the source of truth for safety and request decisions. The system score combines utilization, safe-sequence scarcity, and minimum slack; distinct sequence enumeration is capped at 1,000. What-if comparisons use a tentative request and never mutate the configured scenario. The risk module is pure JavaScript and requires no build step or browser storage. The 19-case test suite passed in an isolated JavaScript harness using a small Node-assert-compatible shim; native Node execution and live browser interaction have not been independently verified in this environment.
@@ -138,6 +153,14 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Reset the trace when the scenario changes to avoid stale results.
 - Fixed final unsafe-state rendering to clamp vector reads to the last valid trace record.
 - Added two Node tests for safety trace invariants. Run `node tests.js` from the repository root.
+
+### Step 7 — Risk visualizations
+
+- Added responsive SVG visualizations for resource allocation versus availability, per-process risk scores, and the safety completion pathway.
+- Process risk bars are selectable by mouse or keyboard and stay synchronized with the process-factor detail and process list.
+- Safe states show the full completion sequence; unsafe states show the partial sequence and blocked processes.
+- The charts use existing scenario and risk-analysis data, follow the light/dark theme, and require no chart dependency.
+- Verification: syntax and static repository checks are being repeated; browser rendering has not been manually verified.
 
 ### Step 6 — Heuristic risk engine and formulas
 
