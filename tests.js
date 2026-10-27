@@ -120,4 +120,27 @@ test("unsafe safety trace preserves its partial completion proof", () => {
   assert.deepEqual(result.stuckProcesses, [0, 1, 2]);
 });
 
+
+test("unsafe tentative grant is denied without mutating the live state", () => {
+  const afterFirst = banker.requestResources(textbook, 1, [1, 0, 2]).state;
+  const before = banker.cloneState(afterFirst);
+  const result = banker.requestResources(afterFirst, 0, [0, 2, 0]);
+  assert.equal(result.status, "DENIED");
+  assert.equal(result.granted, false);
+  assert.deepEqual(result.state, before);
+  assert.deepEqual(afterFirst, before);
+});
+
+test("request that must wait leaves allocation and Available unchanged", () => {
+  const before = banker.cloneState(textbook);
+  const result = banker.requestResources(textbook, 0, [0, 4, 0]);
+  assert.equal(result.status, "MUST WAIT");
+  assert.deepEqual(result.state, before);
+  assert.deepEqual(textbook, before);
+});
+
+test("release beyond current Allocation is rejected", () => {
+  assert.throws(() => banker.releaseResources(textbook, 0, [1, 0, 0]), /Cannot release more/i);
+});
+
 console.log("\nVigil algorithm tests passed.");
