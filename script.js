@@ -60,6 +60,22 @@
   });
 
   const $ = (id) => document.getElementById(id);
+  let toastTimer = null;
+  function showToast(message, kind = "success") {
+    const toast = $("vigil-toast");
+    if (!toast) return;
+    window.clearTimeout(toastTimer);
+    toast.textContent = message;
+    toast.dataset.kind = kind;
+    toast.hidden = false;
+    toast.classList.remove("toast-in");
+    void toast.offsetWidth;
+    toast.classList.add("toast-in");
+    toastTimer = window.setTimeout(() => {
+      toast.hidden = true;
+      toast.classList.remove("toast-in");
+    }, 3200);
+  }
   const DEFAULT_TEXTBOOK = {
     allocation: [[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]],
     maximum: [[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]],
@@ -496,8 +512,10 @@
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       $("scenario-json").value = json;
       setScenarioJsonStatus("Scenario exported. The JSON editor contains the same versioned document.", "success");
+      showToast("Scenario downloaded as vigil-scenario.json.");
     } catch (error) {
       setScenarioJsonStatus("Export failed: " + (error.message || "unable to create JSON file"), "error");
+      showToast("Scenario export failed.", "error");
     }
   }
   function importScenarioJson(source) {
@@ -509,9 +527,11 @@
       syncRequestSession(true);
       $("scenario-json").value = window.VigilScenarioIO.stringifyScenario(parsed);
       setScenarioJsonStatus("Scenario loaded successfully: " + parsed.processNames.length + " processes and " + parsed.resourceNames.length + " resource types. Safety trace and request session reset.", "success");
+      showToast("Scenario loaded. Runtime traces and history were reset.");
       return true;
     } catch (error) {
       setScenarioJsonStatus(error.message || "Could not import this scenario.", "error");
+      showToast("Scenario was not loaded. Check the validation message.", "error");
       return false;
     }
   }
@@ -1245,6 +1265,32 @@
       nextButton.disabled = true;
       explanation.querySelector("strong").textContent = "Why the trace stopped";
       explanation.querySelector("p").textContent = "None of the unfinished processes can meet its remaining Need with the final Work vector (" + safetyResult.finalWork.join(", ") + "). This is an unsafe state, though it does not necessarily mean the system is already deadlocked.";
+    }
+    const sequenceHost = $("safety-sequence-chips");
+    if (sequenceHost) {
+      sequenceHost.replaceChildren();
+      const sequenceComplete = Boolean(safetyResult && safetyResult.safe && safetyCursor >= safetyResult.trace.length - 1);
+      sequenceHost.hidden = !sequenceComplete;
+      if (sequenceComplete) {
+        safetyResult.safeSequence.forEach((processIndex, index) => {
+          const chip = document.createElement("span");
+          chip.className = "sequence-chip";
+          chip.textContent = scenario.processNames[processIndex];
+          sequenceHost.appendChild(chip);
+          if (index < safetyResult.safeSequence.length - 1) {
+            const arrow = document.createElement("span");
+            arrow.className = "sequence-arrow";
+            arrow.setAttribute("aria-hidden", "true");
+            arrow.textContent = "→";
+            sequenceHost.appendChild(arrow);
+          }
+        });
+      }
+    }
+    if (stepCount) {
+      stepCount.classList.remove("count-pulse");
+      void stepCount.offsetWidth;
+      stepCount.classList.add("count-pulse");
     }
     paintSafetyState();
   }
