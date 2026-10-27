@@ -304,3 +304,46 @@
 .risk-path-empty{color:var(--subtle);font-size:10px}
 @media(max-width:900px){.risk-visual-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.risk-chart-card,.risk-sequence-card{padding:13px}.risk-pathway{gap:6px}.risk-path-node{font-size:9px;padding:6px 8px}.risk-chart-legend{gap:10px}}
+
+/* Vigil Step 8: policy experiment and outcome comparison. */
+.policy-controls{padding:17px;margin-bottom:14px}
+.policy-control-row{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(150px,.8fr) auto;align-items:end;gap:12px;margin-top:15px}
+.policy-control-row .request-field-label{display:grid;gap:7px}
+.policy-control-row .button{min-height:40px}
+.policy-experiment-note,.policy-ledger-note{margin:12px 0 0;color:var(--subtle);font-size:9px;line-height:1.8}
+.policy-results{display:grid;gap:14px}
+.policy-result-intro{display:grid;gap:5px}
+.policy-result-intro p{margin:0;color:var(--muted);font-size:10px;line-height:1.7}
+.policy-initial-safe{color:var(--green)!important}
+.policy-initial-unsafe{color:var(--red)!important}
+.policy-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.policy-summary-card{min-width:0;padding:16px}
+.policy-summary-header{display:grid;gap:7px;margin-bottom:13px}
+.policy-summary-header h2{margin:0;font-size:15px;letter-spacing:-.02em}
+.policy-naive-card{border-color:rgba(242,177,91,.28)}
+.policy-metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.policy-metric{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:7px;padding:11px;background:var(--surface-raised);box-shadow:none}
+.policy-metric-label{color:var(--muted);font-size:9px;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+.policy-metric-value{font-size:25px;font-weight:780;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.policy-metric-detail{color:var(--subtle);font-size:9px;line-height:1.6}
+.policy-metric-danger .policy-metric-value{color:var(--red)}
+.policy-final-state{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:9px;line-height:1.6}
+.policy-final-state span{color:var(--muted)}
+.policy-final-safe{border-color:rgba(107,213,170,.3);background:var(--green-soft);color:var(--green)}
+.policy-final-unsafe{border-color:rgba(251,127,131,.35);background:rgba(251,127,131,.08);color:var(--red)}
+.policy-difference,.policy-ledger{padding:16px;min-width:0}
+.policy-difference h2,.policy-ledger h2{margin:0 0 9px;font-size:13px}
+.policy-difference-main{margin:0 0 8px;color:var(--text);font-size:11px;font-weight:700;line-height:1.8}
+.policy-difference-detail{margin:0 0 6px;color:var(--muted);font-size:10px;line-height:1.8}
+.policy-ledger-scroll{width:100%;overflow-x:auto;margin-top:13px}
+.policy-ledger-table{width:100%;border-collapse:collapse;font-size:9px;white-space:nowrap}
+.policy-ledger-table th,.policy-ledger-table td{padding:10px 11px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+.policy-ledger-table thead th{color:var(--muted);font-size:8px;letter-spacing:.05em;text-transform:uppercase;background:var(--surface-raised)}
+.policy-ledger-table tbody th{color:var(--subtle);font-variant-numeric:tabular-nums}
+.policy-ledger-table tr.policy-row-unsafe{background:rgba(251,127,131,.07)}
+.policy-status-granted,.policy-state-safe{color:var(--green);font-weight:750}
+.policy-status-wait{color:var(--amber);font-weight:750}
+.policy-status-unsafe,.policy-status-denied,.policy-state-unsafe{color:var(--red);font-weight:750}
+.policy-error{padding:13px;color:var(--red);font-size:10px;line-height:1.8}
+@media(max-width:850px){.policy-summary-grid{grid-template-columns:1fr}.policy-control-row{grid-template-columns:repeat(2,minmax(0,1fr))}.policy-control-row .button{grid-column:1/-1;width:100%}}
+@media(max-width:520px){.policy-controls,.policy-summary-card,.policy-difference,.policy-ledger{padding:12px}.policy-control-row{grid-template-columns:1fr}.policy-control-row .button{grid-column:auto}.policy-metric-grid{gap:6px}.policy-metric{padding:9px}.policy-metric-value{font-size:22px}}
