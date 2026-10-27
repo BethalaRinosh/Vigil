@@ -5,7 +5,7 @@ Full project title: **Resource Allocation and Deadlock Prevention using Banker's
 
 Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser-based learning lab for resource allocation, textbook deadlock avoidance, and transparent heuristic risk analysis.
 
-> **Current status:** Steps 1–7 of 11 are implemented. Vigil includes transparent heuristic risk analysis with interactive resource, process-score, and completion-path visualizations.
+> **Current status:** Steps 1–8 of 11 are implemented. Vigil now compares Banker's safety-aware allocation with a naive availability-only policy using the same reproducible request workload.
 
 ## Progress checklist
 
@@ -26,7 +26,7 @@ Vigil is a second-year B.Tech AI & ML Operating Systems micro project: a browser
 - Responsive dark/light theme shell with Vigil branding.
 - Seven navigation tabs: Overview, System setup, Safety check, Requests, Risk intelligence, Policy comparison, and Learn & export.
 - Keyboard navigation for tabs and theme shortcuts (D for dark, L for light).
-- Remaining placeholder panels identify which later step will implement each unfinished workspace.
+- The policy comparison is functional; the Learn & export workspace remains scheduled for Step 9.
 - Reduced-motion CSS support and responsive layouts.
 - No framework, build step, localStorage, or runtime dependency for the scaffold.
 
@@ -41,7 +41,7 @@ No install or build process is required.
 3. Use the left navigation to move between workspace sections.
 4. Use **Toggle appearance** to switch between dark and light themes.
 
-Inter is loaded from Google Fonts when a network connection is available; system fonts are used as fallback. Chart.js may be introduced for Step 7 risk visualizations; it is not required by the current implementation.
+Inter is loaded from Google Fonts when a network connection is available; system fonts are used as fallback. Risk and policy visualizations use native HTML/SVG and do not require a chart library.
 
 ## Project files
 
@@ -50,7 +50,21 @@ Inter is loaded from Google Fonts when a network connection is available; system
 - `script.js` — in-memory scenario editor, safety walkthrough, request/release workflow, risk UI, interactive SVG charts, what-if comparisons, and validation.
 - `banker.js` — pure Need, safety, request, release, and state-validation functions.
 - `risk.js` — pure heuristic risk scoring, bounded safe-sequence enumeration, and what-if analysis.
-- `tests.js` — Node.js tests for safety traces, request outcomes, transaction immutability, releases, and invalid inputs.
+- `policy.js` — seeded request-workload generation and Banker's vs. naive policy simulation.
+- `tests.js` — Node.js tests for algorithms, risk analysis, deterministic workloads, policy comparison, and unsafe-grant behavior.
+
+## Step 8 policy comparison
+
+The **Policy comparison** workspace runs a seeded workload through two policies from the same starting scenario:
+
+- **Banker's Algorithm:** a request is granted only when it is within the process's remaining Need, within current Available resources, and the tentative state passes the formal safety check.
+- **Naive availability-only policy:** a request is granted when it is within remaining Need and current Available resources, but no post-grant safety check is performed.
+
+The workload is generated once and replayed in the same order for both policies. Choose 50, 100, 250, or 500 trials and a seed from 0 to 2,147,483,647. The same seed and setup reproduce the same requests. The default textbook example uses seed 5 to demonstrate unsafe grants under the naive policy. A different seed may produce no unsafe grant; this is a valid outcome, not evidence that the naive policy guarantees safety.
+
+Results include grants, waits, Need rejections, unsafe denials, unsafe grants, unsafe post-request states, final safety, and a request-by-request ledger for the first 20 trials. Unsafe grants count granted requests that leave the resulting state unsafe. Unsafe transitions count safe-to-unsafe changes. Unsafe rounds count post-request states that are unsafe, so a single unsafe transition can contribute multiple unsafe rounds if the state remains unsafe.
+
+The experiment does not deliberately grant requests beyond Need or beyond Available; it isolates the impact of omitting the safety check. It is a deterministic teaching simulation, not a proof about all possible request workloads. Changing the System setup invalidates the displayed result and requires a new run.
 
 ## Step 7 risk visualizations
 
@@ -131,6 +145,10 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Vigil is an educational client-side simulation, not an operating-system resource manager.
 - Do not persist scenario state in localStorage.
 
+## Context review — Step 8
+
+**Context review done.** The comparison uses the same generated request objects in the same order for both policies, starts each policy from an independent clone of the configured scenario, and never mutates the setup. The naive policy checks remaining Need and Available but intentionally omits the post-grant safety test. The Banker's policy delegates each request to `VigilBanker.requestResources`. Summary metrics distinguish unsafe grants, safe-to-unsafe transitions, and unsafe post-request rounds. The ledger labels the first 20 requests and displays both outcomes. Invalid trial counts and seeds are rejected. Static checks confirm the policy script loads after `banker.js` and before `script.js`, all fixed DOM references exist, IDs are unique, and tab/panel mappings remain aligned. All 23 algorithm, risk, and policy tests passed in an isolated JavaScript harness; the user has separately confirmed earlier UI pages look correct, but this new Step 8 workflow still needs the specific browser tests listed in the handoff.
+
 ## Context review — Step 7
 
 **Context review done.** Re-checked the seven repository files after adding the visualizations. The risk charts are based on the same scenario and risk assessment used by Step 6: allocated/available counts come from the scenario vectors, process bars use existing process scores, and the pathway uses the formal safety result's complete or partial sequence. Process chart selection updates the existing process detail view, including keyboard activation. SVG nodes are created with DOM APIs and text is inserted as text, not raw HTML. Static checks confirm chart containers and fixed DOM references exist, scripts load in dependency order, tabs match panels, and no duplicate IDs were introduced. The 19 algorithm/risk tests passed previously in an isolated JavaScript harness; this turn's latest full suite and live browser rendering still require verification.
@@ -152,6 +170,15 @@ The 14 tests cover the textbook safe sequence `P1, P3, P4, P0, P2`, granting P1'
 - Reset the trace when the scenario changes to avoid stale results.
 - Fixed final unsafe-state rendering to clamp vector reads to the last valid trace record.
 - Added two Node tests for safety trace invariants. Run `node tests.js` from the repository root.
+
+### Step 8 — Banker's vs. naive policy comparison
+
+- Added `policy.js` with seeded, reproducible workload generation and two independent policy simulations.
+- Implemented the naive policy as grant-if-within-Need-and-Available, intentionally omitting the formal post-grant safety check.
+- Added trial-count and seed controls, per-policy metrics, unsafe-state comparison, and a first-20-trials request ledger.
+- Scenario edits clear old results so stale comparison metrics are not mistaken for current data.
+- Added four tests for seeded determinism, identical request order, unsafe-grant contrast, input validation, and non-mutation.
+- Verification: all 23 tests passed in an isolated JavaScript harness; static syntax, DOM ID, tab/panel, script-order, and fixed-reference checks passed. Live browser checks for Step 8 are still required.
 
 ### Step 7 — Risk visualizations
 
