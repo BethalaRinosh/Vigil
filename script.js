@@ -452,7 +452,7 @@
         });
         const list = $("risk-process-list");
         list.querySelectorAll(".risk-process-row").forEach((row) => {
-          const active = row.getAttribute("aria-pressed") === "true" && row.querySelector(".risk-process-name")?.textContent === scenario.processNames[item.processIndex];
+          const active = Number(row.dataset.processIndex) === item.processIndex;
           row.classList.toggle("is-selected", active);
           row.setAttribute("aria-pressed", String(active));
         });
@@ -543,6 +543,7 @@
     assessment.processScores.forEach((item) => {
       const button = makeCell("button", "risk-process-row" + (item.processIndex === selectedRiskProcess ? " is-selected" : ""));
       button.type = "button";
+      button.dataset.processIndex = String(item.processIndex);
       button.setAttribute("aria-pressed", String(item.processIndex === selectedRiskProcess));
       const title = makeCell("span", "risk-process-name", scenario.processNames[item.processIndex]);
       const track = makeCell("span", "risk-process-mini-track");
