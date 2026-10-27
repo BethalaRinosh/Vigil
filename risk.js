@@ -18,11 +18,15 @@
     const sequences = [];
     let capped = false;
     function visit(work, finished, sequence) {
-      if (sequences.length >= cap) { capped = true; return; }
       if (sequence.length === n) {
+        if (sequences.length >= cap) {
+          capped = true;
+          return;
+        }
         sequences.push(sequence.slice());
         return;
       }
+      if (capped) return;
       for (let p = 0; p < n; p += 1) {
         if (finished[p] || !need[p].every((value, r) => value <= work[r])) continue;
         const nextWork = work.slice();
@@ -32,7 +36,7 @@
         visit(nextWork, finished, sequence);
         sequence.pop();
         finished[p] = false;
-        if (sequences.length >= cap) { capped = true; return; }
+        if (capped) return;
       }
     }
     visit(state.available.slice(), Array(n).fill(false), []);
