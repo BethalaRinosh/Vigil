@@ -78,9 +78,14 @@
     const sequence = [];
     const trace = [{ completedProcess: null, work: cloneVector(work), finish: cloneVector(finish), message: "Initial Work is Available." }];
 
+    let scanStart = 0;
     while (sequence.length < processCount) {
       let selected = -1;
-      for (let p = 0; p < processCount; p += 1) {
+      // Scan circularly from the process after the last completion. The safety
+      // proof permits any eligible process; this deterministic scan produces
+      // the sequence specified for Vigil's textbook demonstration.
+      for (let offset = 0; offset < processCount; offset += 1) {
+        const p = (scanStart + offset) % processCount;
         if (!finish[p] && need[p].every((needed, r) => needed <= work[r])) {
           selected = p;
           break;
@@ -90,6 +95,7 @@
       for (let r = 0; r < resourceCount; r += 1) work[r] += state.allocation[selected][r];
       finish[selected] = true;
       sequence.push(selected);
+      scanStart = (selected + 1) % processCount;
       trace.push({
         completedProcess: selected,
         work: cloneVector(work),
